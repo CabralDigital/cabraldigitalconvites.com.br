@@ -10,11 +10,11 @@
 <body><main class="wrap">
 <img class="banner" src="banner-formulario.png" alt="Cabral Digital — Seu evento começa pelo convite" width="1200" height="600">
 <div class="intro"><h1>Formulário de pedido</h1><p>Preencha com atenção os dados para personalizar seu convite.</p></div>
-<form id="pedidoForm">
-<section class="card" id="produtoCard"><h2>Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados do produto serão preenchidos automaticamente quando você chegar pelo catálogo.</p></section>
+<div id="statusProduto" class="card" role="status">Verificando o convite escolhido...</div><form id="pedidoForm" hidden>
+<section class="card" id="produtoCard"><h2>Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados são carregados diretamente do catálogo.</p></section>
 <section class="card"><h2>Informações para personalização</h2>
 <div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
-<div class="field"><label for="tipo">Tipo de convite <span class="req">*</span></label><select id="tipo" name="tipo" required><option value="">Selecione</option><option value="interativo">Convite interativo</option><option value="animado">Convite animado</option><option value="tradicional">Convite tradicional (PNG)</option><option value="outro">Outro modelo</option></select></div>
+
 <div class="field"><label for="nome">Nome do(a) aniversariante ou homenageado(a) <span class="req">*</span></label><input id="nome" name="nome" required maxlength="140"></div>
 <div class="field"><label for="idade">Idade (se aplicável)</label><input id="idade" name="idade" placeholder="Ex.: 2 aninhos" maxlength="40"></div>
 <div class="two"><div class="field"><label for="data">Data da festa <span class="req">*</span></label><input type="date" id="data" name="data" required></div><div class="field"><label for="hora">Horário da festa <span class="req">*</span></label><input type="time" id="hora" name="hora" required></div></div>
@@ -27,26 +27,46 @@
 </section>
 <section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as políticas da loja e estou ciente das informações importantes apresentadas na descrição do produto. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
 </form><p class="foot">Cabral Digital · Artes Digitais</p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
 'use strict';
 const WHATSAPP='5521996625253';
 const p=new URLSearchParams(location.search);
-const pick=(...keys)=>{for(const k of keys){const v=p.get(k);if(v)return v.trim().slice(0,180)}return ''};
-const produto={tema:pick('tema'),modelo:pick('modelo'),tipo:pick('tipo'),preco:pick('preco','valor'),id:pick('id')};
 const el=id=>document.getElementById(id);
-const tipos={interativo:'Convite interativo',animado:'Convite animado',tradicional:'Convite tradicional (PNG)',outro:'Outro modelo'};
-const normalizeTipo=v=>{v=(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
-const escolhido=normalizeTipo(produto.tipo);if(escolhido)el('tipo').value=escolhido;
-const resumo=[];if(produto.tema)resumo.push('Tema: '+produto.tema);if(produto.modelo)resumo.push('Modelo: '+produto.modelo);if(produto.tipo)resumo.push('Tipo: '+produto.tipo);if(produto.preco)resumo.push('Valor: '+produto.preco);el('resumo').textContent=resumo.length?resumo.join('\n'):'O modelo será identificado no atendimento.';
-function atualizar(){const tipo=el('tipo').value;document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
-el('tipo').addEventListener('change',atualizar);atualizar();
+const SUPABASE_URL='https://eqvhreltmgbruqyrahac.supabase.co';
+const SUPABASE_KEY='sb_publishable_fEd_o4cffejuNqVzX-N8XA_BB0SRr3Y';
+let produto=null;
+const normalizeTipo=v=>{v=String(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
+function atualizar(tipo){document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
+async function carregarProduto(){
+ const id=p.get('id');
+ if(!id){el('statusProduto').innerHTML='Para preencher o pedido, <a href="./index.html">escolha primeiro um convite no catálogo</a>.';return;}
+ try{
+  const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const {data:m,error:me}=await db.from('modelos_catalogo').select('*').eq('id',id).eq('ativo',true).maybeSingle();
+  if(me)throw me;
+  if(!m)throw new Error('Produto não encontrado ou indisponível');
+  const {data:t,error:te}=await db.from('temas_catalogo').select('*').eq('id',m.tema_id).eq('ativo',true).maybeSingle();
+  if(te)throw te;
+  if(!t)throw new Error('Tema indisponível');
+  const tipo=normalizeTipo(m.tipo);
+  if(!tipo)throw new Error('Tipo de convite ainda não configurado para este formulário');
+  produto={id:m.id,tema:t.nome,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:tipo};
+  el('resumo').textContent=['Tema: '+produto.tema,'Modelo: '+produto.modelo,'Tipo: '+produto.tipo,'Valor: '+produto.preco.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})].join('\n');
+  atualizar(tipo);
+  el('statusProduto').hidden=true;
+  el('pedidoForm').hidden=false;
+ }catch(err){console.error('Erro ao carregar produto',err);el('statusProduto').innerHTML='Não foi possível validar este convite. <a href="./index.html">Voltar ao catálogo</a>.';}
+}
+carregarProduto();
 function dataBR(v){if(!v)return'';const a=v.split('-');return a.length===3?[a[2],a[1],a[0]].join('/'):v}
 const get=id=>el(id).value.trim();
 el('pedidoForm').addEventListener('submit',e=>{
 e.preventDefault();if(!e.currentTarget.reportValidity())return;
-const tipo=el('tipo').value;
-const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTO*',...(produto.tema?['Tema: '+produto.tema]:[]),...(produto.modelo?['Modelo: '+produto.modelo]:[]),'Tipo: '+(produto.tipo||tipos[tipo]),...(produto.preco?['Valor informado no catálogo: '+produto.preco]:[]),'','*DADOS DO CONVITE*','Responsável: '+get('responsavel'),'Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco')];
+if(!produto)return;
+const tipo=produto.categoria;
+const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTO*',...(produto.tema?['Tema: '+produto.tema]:[]),...(produto.modelo?['Modelo: '+produto.modelo]:[]),'Tipo: '+produto.tipo,'Valor informado no catálogo: '+produto.preco.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),'','*DADOS DO CONVITE*','Responsável: '+get('responsavel'),'Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco')];
 if(tipo==='interativo'){if(get('confirmacao'))linhas.push('WhatsApp para confirmação: '+get('confirmacao'));if(get('presentes'))linhas.push('Sugestões de presentes: '+get('presentes'))}
 const foto=document.querySelector('input[name="foto"]:checked');linhas.push('Terá foto: '+(foto?foto.value:'Não'));
 if(get('frase'))linhas.push('Frase personalizada: '+get('frase'));
