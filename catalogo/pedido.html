@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Formulário de pedido | Cabral Digital</title>
+<style>
+:root{--lilas:#a58bc8;--lilas-esc:#745c96;--menta:#baf1de;--texto:#3e3850;--borda:#e8e2ef;--fundo:#faf9fc}*{box-sizing:border-box}body{margin:0;background:var(--fundo);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--texto)}.wrap{max-width:820px;margin:auto;padding:22px 18px 65px}.banner{width:100%;height:auto;display:block;border-radius:18px;box-shadow:0 4px 22px #82709512}.intro{text-align:center;margin:30px auto 22px}.intro h1{font-size:26px;letter-spacing:-.6px;margin:0;color:var(--lilas-esc);font-weight:650}.intro p{color:#81778e;margin:8px 0 0}.card{background:#fff;border:1px solid var(--borda);border-radius:16px;padding:24px;margin-bottom:15px;box-shadow:0 2px 12px #82709509}.card h2{font-size:17px;font-weight:650;margin:0 0 16px;color:var(--lilas-esc)}.field{margin:0 0 18px}.field:last-child{margin-bottom:0}label{display:block;font-weight:580;margin-bottom:7px}.req{color:#b76b95}input,textarea,select{font:inherit;color:var(--texto);width:100%;padding:12px 13px;border:1px solid #ded8e7;border-radius:9px;background:#fff;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--lilas);box-shadow:0 0 0 3px #a58bc823}textarea{resize:vertical;min-height:90px}.hint{font-size:12px;color:#8b8196;margin:5px 0 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.radio{display:flex;gap:17px;flex-wrap:wrap}.radio label,.accept label{display:flex;align-items:flex-start;gap:9px;font-weight:450;margin:0}.radio input,.accept input{width:auto;accent-color:var(--lilas);margin-top:5px}.summary{background:#f8f5fb;border:1px solid var(--borda);padding:14px 16px;border-radius:11px;white-space:pre-line}.accept{display:flex;gap:10px;align-items:flex-start}.accept label{line-height:1.5}.send{display:block;width:100%;background:#a5e9d1;border:0;color:#245c4c;border-radius:12px;padding:16px 18px;font-weight:700;font-size:15px;cursor:pointer;margin-top:18px}.send:hover{background:#8bdcbe}.foot{text-align:center;font-size:12px;color:#92889e;margin-top:18px}.hide{display:none!important}@media(max-width:580px){.wrap{padding:12px 12px 40px}.card{padding:18px}.two{grid-template-columns:1fr}.intro h1{font-size:22px}.banner{border-radius:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<img class="banner" src="banner-formulario.png" alt="Cabral Digital — Seu evento começa pelo convite" width="1200" height="600">
+<div class="intro"><h1>Formulário de pedido</h1><p>Preencha com atenção os dados para personalizar seu convite.</p></div>
+<form id="pedidoForm">
+<section class="card" id="produtoCard"><h2>Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados do produto serão preenchidos automaticamente quando você chegar pelo catálogo.</p></section>
+<section class="card"><h2>Informações para personalização</h2>
+<div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
+<div class="field"><label for="tipo">Tipo de convite <span class="req">*</span></label><select id="tipo" name="tipo" required><option value="">Selecione</option><option value="interativo">Convite interativo</option><option value="animado">Convite animado</option><option value="tradicional">Convite tradicional (PNG)</option><option value="outro">Outro modelo</option></select></div>
+<div class="field"><label for="nome">Nome do(a) aniversariante ou homenageado(a) <span class="req">*</span></label><input id="nome" name="nome" required maxlength="140"></div>
+<div class="field"><label for="idade">Idade (se aplicável)</label><input id="idade" name="idade" placeholder="Ex.: 2 aninhos" maxlength="40"></div>
+<div class="two"><div class="field"><label for="data">Data da festa <span class="req">*</span></label><input type="date" id="data" name="data" required></div><div class="field"><label for="hora">Horário da festa <span class="req">*</span></label><input type="time" id="hora" name="hora" required></div></div>
+<div class="field"><label for="endereco">Endereço completo da festa <span class="req">*</span></label><textarea id="endereco" name="endereco" required placeholder="Local, rua, número, bairro, cidade e referência, se houver"></textarea></div>
+<div class="field conditional" data-types="interativo"><label for="confirmacao">WhatsApp para confirmação de presença</label><input id="confirmacao" name="confirmacao" inputmode="tel" placeholder="DDD + número" maxlength="30"></div>
+<div class="field conditional" data-types="interativo"><label for="presentes">Sugestões de presentes</label><textarea id="presentes" name="presentes" placeholder="Se não desejar incluir, deixe em branco"></textarea></div>
+<div class="field"><label>O convite terá foto?</label><div class="radio"><label><input type="radio" name="foto" value="Sim"> Sim</label><label><input type="radio" name="foto" value="Não" checked> Não</label></div><p class="hint">Se sim, envie a foto separadamente pelo WhatsApp após abrir a conversa.</p></div>
+<div class="field"><label for="frase">Deseja personalizar a frase do convite?</label><textarea id="frase" name="frase" placeholder="Se desejar, escreva a frase aqui. Caso contrário, deixe em branco."></textarea></div>
+<div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
+</section>
+<section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as políticas da loja e estou ciente das informações importantes apresentadas na descrição do produto. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
+</form><p class="foot">Cabral Digital · Artes Digitais</p></main>
+<script>
+(function(){
+'use strict';
+const WHATSAPP='5521996625253';
+const p=new URLSearchParams(location.search);
+const pick=(...keys)=>{for(const k of keys){const v=p.get(k);if(v)return v.trim().slice(0,180)}return ''};
+const produto={tema:pick('tema'),modelo:pick('modelo'),tipo:pick('tipo'),preco:pick('preco','valor'),id:pick('id')};
+const el=id=>document.getElementById(id);
+const tipos={interativo:'Convite interativo',animado:'Convite animado',tradicional:'Convite tradicional (PNG)',outro:'Outro modelo'};
+const normalizeTipo=v=>{v=(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
+const escolhido=normalizeTipo(produto.tipo);if(escolhido)el('tipo').value=escolhido;
+const resumo=[];if(produto.tema)resumo.push('Tema: '+produto.tema);if(produto.modelo)resumo.push('Modelo: '+produto.modelo);if(produto.tipo)resumo.push('Tipo: '+produto.tipo);if(produto.preco)resumo.push('Valor: '+produto.preco);el('resumo').textContent=resumo.length?resumo.join('\n'):'O modelo será identificado no atendimento.';
+function atualizar(){const tipo=el('tipo').value;document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
+el('tipo').addEventListener('change',atualizar);atualizar();
+function dataBR(v){if(!v)return'';const a=v.split('-');return a.length===3?[a[2],a[1],a[0]].join('/'):v}
+const get=id=>el(id).value.trim();
+el('pedidoForm').addEventListener('submit',e=>{
+e.preventDefault();if(!e.currentTarget.reportValidity())return;
+const tipo=el('tipo').value;
+const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTO*',...(produto.tema?['Tema: '+produto.tema]:[]),...(produto.modelo?['Modelo: '+produto.modelo]:[]),'Tipo: '+(produto.tipo||tipos[tipo]),...(produto.preco?['Valor informado no catálogo: '+produto.preco]:[]),'','*DADOS DO CONVITE*','Responsável: '+get('responsavel'),'Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco')];
+if(tipo==='interativo'){if(get('confirmacao'))linhas.push('WhatsApp para confirmação: '+get('confirmacao'));if(get('presentes'))linhas.push('Sugestões de presentes: '+get('presentes'))}
+const foto=document.querySelector('input[name="foto"]:checked');linhas.push('Terá foto: '+(foto?foto.value:'Não'));
+if(get('frase'))linhas.push('Frase personalizada: '+get('frase'));
+if(get('observacoes'))linhas.push('Observações: '+get('observacoes'));
+linhas.push('','*CONFIRMAÇÃO*','Li e aceito as políticas da loja e as informações importantes apresentadas na descrição do produto.','','Gostaria de prosseguir com minha encomenda.');
+const url='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(linhas.join('\n'));
+window.location.href=url;
+});
+})();
+</script></body></html>
