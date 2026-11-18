@@ -8,7 +8,7 @@ const KEY='sb_publishable_fEd_o4cffejuNqVzX-N8XA_BB0SRr3Y';
 const ADMIN='80fd7dc2-0d02-4b06-be4d-27e4198fb514';
 const db=window.supabase.createClient(SUPABASE_URL,KEY);
 const $=id=>document.getElementById(id);
-let categories=[],themes=[],models=[],banners=[],collections=[],collectionModels=[],coupons=[];
+let categories=[],themes=[],models=[],banners=[],collections=[],collectionModels=[],coupons=[],promotions=[],promotionModels=[];
 const slugify=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 function notify(message,error=false){const el=$('message');el.textContent=message;el.className='notice'+(error?' error':'');window.scrollTo({top:0,behavior:'smooth'});}
 function showAuth(logged){$('login').classList.toggle('hidden',logged);$('app').classList.toggle('hidden',!logged);$('logout').classList.toggle('hidden',!logged);}
