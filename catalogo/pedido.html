@@ -11,8 +11,8 @@
 <img class="banner" src="banner-formulario.png" alt="Cabral Digital — Seu evento começa pelo convite" width="1200" height="600">
 <div class="intro"><h1>Formulário de pedido</h1><p>Preencha com atenção os dados para personalizar seu convite.</p></div>
 <div id="statusProduto" class="card" role="status">Verificando o convite escolhido...</div><form id="pedidoForm" hidden>
-<section class="card" id="produtoCard"><h2>Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados são carregados diretamente do catálogo.</p></section>
-<section class="card"><h2>Informações para personalização</h2>
+<section class="card" id="produtoCard"><h2 id="produtoTitulo">Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados são carregados diretamente do catálogo.</p></section>
+<section class="card"><h2>Informações para personalização</h2><p id="multiplosAviso" class="hint hide" style="margin-bottom:16px">Preencha os dados comuns do evento. Se os produtos precisarem de informações diferentes, detalhe cada um no campo Observações adicionais.</p>
 <div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
 
 <div class="field"><label for="nome">Nome do(a) aniversariante ou homenageado(a) <span class="req">*</span></label><input id="nome" name="nome" required maxlength="140"></div>
@@ -36,56 +36,68 @@ const p=new URLSearchParams(location.search);
 const el=id=>document.getElementById(id);
 const SUPABASE_URL='https://eqvhreltmgbruqyrahac.supabase.co';
 const SUPABASE_KEY='sb_publishable_fEd_o4cffejuNqVzX-N8XA_BB0SRr3Y';
-let produto=null, cupomAplicado=null, validandoCupom=false;
+let produto=null, produtos=[], cupomAplicado=null, validandoCupom=false;
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const dinheiro=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-function totalComDesconto(){if(!produto)return 0;return cupomAplicado?Math.max(0,Math.round((produto.preco*(1-Number(cupomAplicado.desconto_percentual)/100)+Number.EPSILON)*100)/100):produto.preco;}
-function mostrarValores(){if(!produto)return;const linhas=['Valor original: '+dinheiro(produto.preco)];if(cupomAplicado){linhas.push('Cupom: '+cupomAplicado.codigo,'Desconto ('+Number(cupomAplicado.desconto_percentual).toLocaleString('pt-BR')+'%): -'+dinheiro(produto.preco-totalComDesconto()));}linhas.push('Valor final: '+dinheiro(totalComDesconto()));el('resumoValores').textContent=linhas.join('\n');}
+const subtotal=()=>Math.round(produtos.reduce((s,x)=>s+x.preco,0)*100)/100;
+function melhorDesconto(){const valor=subtotal();const auto=valor>70?10:0;const cupom=cupomAplicado?Number(cupomAplicado.desconto_percentual):0;return cupom>auto?{percent:cupom,tipo:'cupom'}:auto?{percent:auto,tipo:'automatico'}:cupom?{percent:cupom,tipo:'cupom'}:{percent:0,tipo:'nenhum'};}
+function totalComDesconto(){const s=subtotal(),d=melhorDesconto();return Math.max(0,Math.round(s*(1-d.percent/100)*100)/100);}
+function mostrarValores(){if(!produtos.length)return;const s=subtotal(),d=melhorDesconto();const linhas=['Subtotal: '+dinheiro(s)];if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom aplicado: '+cupomAplicado.codigo:'Desconto automático para compras acima de R$ 70,00');linhas.push('Desconto ('+d.percent.toLocaleString('pt-BR')+'%): -'+dinheiro(s-totalComDesconto()));}if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado: '+cupomAplicado.codigo+' (não acumulado; desconto automático mais vantajoso)');linhas.push('Valor final: '+dinheiro(totalComDesconto()));el('resumoValores').textContent=linhas.join('\n');}
 function mensagemCupom(texto,erro=false){const node=el('cupomMensagem');node.textContent=texto;node.className='coupon-message'+(texto?(erro?' error':' ok'):'');}
 function limparCupom(){cupomAplicado=null;mensagemCupom('');mostrarValores();}
 el('cupomCodigo').addEventListener('input',limparCupom);
 el('aplicarCupom').addEventListener('click',async()=>{
- if(validandoCupom||!produto)return;const codigo=el('cupomCodigo').value.trim().toUpperCase();
+ if(validandoCupom||!produtos.length)return;const codigo=el('cupomCodigo').value.trim().toUpperCase();
  limparCupom();if(!codigo){mensagemCupom('Digite um código de cupom.',true);return;}
  validandoCupom=true;el('aplicarCupom').disabled=true;mensagemCupom('Verificando cupom...');
  try{const {data,error}=await db.from('cupons_catalogo').select('codigo,desconto_percentual,primeira_compra,ativo,validade').eq('codigo',codigo).eq('ativo',true).maybeSingle();if(error)throw error;
  const hoje=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  if(!data||(data.validade&&data.validade<hoje)){mensagemCupom('Cupom inválido, inativo ou vencido.',true);return;}
  if(el('cupomCodigo').value.trim().toUpperCase()!==codigo)return;
- cupomAplicado=data;mostrarValores();mensagemCupom(data.primeira_compra?'Cupom de primeira compra aplicado! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto, sujeito à confirmação antes do pagamento.':'Cupom aplicado com sucesso! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto.');
+ cupomAplicado=data;mostrarValores();mensagemCupom(Number(data.desconto_percentual)<= (subtotal()>70?10:0)?'Cupom válido. O desconto automático é igual ou mais vantajoso e não será acumulado.':data.primeira_compra?'Cupom de primeira compra aplicado! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto, sujeito à confirmação antes do pagamento.':'Cupom aplicado com sucesso! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto.');
  }catch(err){console.error('Erro ao verificar cupom',err);mensagemCupom('Não foi possível verificar o cupom. Tente novamente.',true)}finally{validandoCupom=false;el('aplicarCupom').disabled=false;}
 });
 const normalizeTipo=v=>{v=String(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
 function atualizar(tipo){document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
 async function carregarProduto(){
- const id=p.get('id');
- if(!id){el('statusProduto').innerHTML='Para preencher o pedido, <a href="./index.html">escolha primeiro um convite no catálogo</a>.';return;}
  try{
-  const {data:m,error:me}=await db.from('modelos_catalogo').select('*').eq('id',id).eq('ativo',true).maybeSingle();
-  if(me)throw me;
-  if(!m)throw new Error('Produto não encontrado ou indisponível');
-  const {data:t,error:te}=await db.from('temas_catalogo').select('*').eq('id',m.tema_id).eq('ativo',true).maybeSingle();
-  if(te)throw te;
-  if(!t)throw new Error('Tema indisponível');
-  const tipo=normalizeTipo(m.tipo);
-  if(!tipo)throw new Error('Tipo de convite ainda não configurado para este formulário');
-  produto={id:m.id,tema:t.nome,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:tipo};
-  el('resumo').textContent=['Tema: '+produto.tema,'Modelo: '+produto.modelo,'Tipo: '+produto.tipo,'Valor: '+produto.preco.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})].join('\n');
+  const carrinho=p.get('carrinho')==='1';
+  let ids=[];
+  if(carrinho){try{const saved=JSON.parse(localStorage.getItem('cabraldigital_carrinho_v1')||'[]');if(Array.isArray(saved))ids=[...new Set(saved.map(String))].slice(0,40)}catch(e){}}
+  else if(p.get('id'))ids=[p.get('id')];
+  if(!ids.length){el('statusProduto').innerHTML='Seu carrinho está vazio. <a href="./index.html">Voltar ao catálogo</a>.';return;}
+  const [ms,ts]=await Promise.all([db.from('modelos_catalogo').select('*').in('id',ids).eq('ativo',true),db.from('temas_catalogo').select('*').eq('ativo',true)]);
+  if(ms.error||ts.error)throw ms.error||ts.error;
+  const temas=ts.data||[];
+  produtos=ids.map(id=>{const m=(ms.data||[]).find(x=>String(x.id)===id);if(!m)return null;const t=temas.find(x=>String(x.id)===String(m.tema_id));if(!t)return null;return{id:m.id,tema:t.nome,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:normalizeTipo(m.tipo)}}).filter(Boolean);
+  if(produtos.length!==ids.length)throw Error('Algum produto não está mais disponível. Revise seu carrinho.');
+  produto=produtos[0];
+  const multi=produtos.length>1;
+  el('produtoTitulo').textContent=multi?'Produtos do carrinho':'Convite escolhido';
+  el('multiplosAviso').classList.toggle('hide',!multi);
+  el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.tema+' — '+x.modelo+'\nTipo: '+x.tipo+'\nValor: '+dinheiro(x.preco)).join('\n\n');
   mostrarValores();
-  atualizar(tipo);
-  el('statusProduto').hidden=true;
-  el('pedidoForm').hidden=false;
- }catch(err){console.error('Erro ao carregar produto',err);el('statusProduto').innerHTML='Não foi possível validar este convite. <a href="./index.html">Voltar ao catálogo</a>.';}
+  atualizar(produtos.some(x=>x.categoria==='interativo')?'interativo':'');
+  el('statusProduto').hidden=true;el('pedidoForm').hidden=false;
+ }catch(err){console.error('Erro ao carregar pedido',err);el('statusProduto').innerHTML='Não foi possível validar os produtos. <a href="./index.html">Voltar ao catálogo</a>.';}
 }
 carregarProduto();
 function dataBR(v){if(!v)return'';const a=v.split('-');return a.length===3?[a[2],a[1],a[0]].join('/'):v}
 const get=id=>el(id).value.trim();
 el('pedidoForm').addEventListener('submit',e=>{
 e.preventDefault();if(!e.currentTarget.reportValidity())return;
-if(!produto||validandoCupom)return;
+if(!produtos.length||validandoCupom)return;
 if(el('cupomCodigo').value.trim()&&!cupomAplicado){mensagemCupom('Clique em Aplicar cupom ou apague o código antes de finalizar.',true);el('cupomCodigo').focus();return;}
-const tipo=produto.categoria;
-const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTO*',...(produto.tema?['Tema: '+produto.tema]:[]),...(produto.modelo?['Modelo: '+produto.modelo]:[]),'Tipo: '+produto.tipo,'Valor informado no catálogo: '+dinheiro(produto.preco),...(cupomAplicado?['Cupom: '+cupomAplicado.codigo,'Desconto: '+Number(cupomAplicado.desconto_percentual).toLocaleString('pt-BR')+'% (-'+dinheiro(produto.preco-totalComDesconto())+')','Valor final com desconto: '+dinheiro(totalComDesconto()),...(cupomAplicado.primeira_compra?['*Desconto de primeira compra sujeito à confirmação pela Cabral Digital antes do pagamento.*']:[])]:['Valor final: '+dinheiro(produto.preco)]),'','*DADOS DO CONVITE*','Responsável: '+get('responsavel'),'Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco')];
+const tipo=produtos.some(x=>x.categoria==='interativo')?'interativo':'';
+const d=melhorDesconto(),s=subtotal();
+const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTOS*'];
+produtos.forEach((x,i)=>linhas.push((i+1)+'. '+x.tema+' — '+x.modelo,'Tipo: '+x.tipo,'Valor: '+dinheiro(x.preco),''));
+linhas.push('Subtotal: '+dinheiro(s));
+if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom: '+cupomAplicado.codigo:'Desconto automático acima de R$ 70,00','Desconto: '+d.percent.toLocaleString('pt-BR')+'% (-'+dinheiro(s-totalComDesconto())+')');}
+if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado (não acumulado): '+cupomAplicado.codigo);
+linhas.push('Valor final: '+dinheiro(totalComDesconto()));
+if(d.tipo==='cupom'&&cupomAplicado.primeira_compra)linhas.push('*Desconto de primeira compra sujeito à confirmação pela Cabral Digital antes do pagamento.*');
+linhas.push('','*DADOS DO CONVITE*','Responsável: '+get('responsavel'),'Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco'));
 if(tipo==='interativo'){if(get('confirmacao'))linhas.push('WhatsApp para confirmação: '+get('confirmacao'));if(get('presentes'))linhas.push('Sugestões de presentes: '+get('presentes'))}
 const foto=document.querySelector('input[name="foto"]:checked');linhas.push('Terá foto: '+(foto?foto.value:'Não'));
 if(get('frase'))linhas.push('Frase personalizada: '+get('frase'));
