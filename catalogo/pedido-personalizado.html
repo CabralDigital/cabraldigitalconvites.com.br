@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pedido personalizado | Cabral Digital</title>
+<style>
+:root{--lilas:#a58bc8;--lilas-esc:#745c96;--menta:#baf1de;--texto:#3e3850;--borda:#e8e2ef;--fundo:#faf9fc}*{box-sizing:border-box}body{margin:0;background:var(--fundo);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--texto)}.wrap{max-width:820px;margin:auto;padding:22px 18px 65px}.banner{width:100%;height:auto;display:block;border-radius:18px;box-shadow:0 4px 22px #82709512}.intro{text-align:center;margin:30px auto 22px}.intro h1{font-size:26px;letter-spacing:-.6px;margin:0;color:var(--lilas-esc);font-weight:650}.intro p{color:#81778e;margin:8px 0 0}.card{background:#fff;border:1px solid var(--borda);border-radius:16px;padding:24px;margin-bottom:15px;box-shadow:0 2px 12px #82709509}.card h2{font-size:17px;font-weight:650;margin:0 0 16px;color:var(--lilas-esc)}.field{margin:0 0 18px}.field:last-child{margin-bottom:0}label{display:block;font-weight:580;margin-bottom:7px}.req{color:#b76b95}input,textarea,select{font:inherit;color:var(--texto);width:100%;padding:12px 13px;border:1px solid #ded8e7;border-radius:9px;background:#fff;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--lilas);box-shadow:0 0 0 3px #a58bc823}textarea{resize:vertical;min-height:90px}.hint{font-size:12px;color:#8b8196;margin:5px 0 0}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.radio{display:flex;gap:17px;flex-wrap:wrap}.radio label,.accept label{display:flex;align-items:flex-start;gap:9px;font-weight:450;margin:0}.radio input,.accept input{width:auto;accent-color:var(--lilas);margin-top:5px}.summary{background:#f8f5fb;border:1px solid var(--borda);padding:14px 16px;border-radius:11px;white-space:pre-line}.accept{display:flex;gap:10px;align-items:flex-start}.accept label{line-height:1.5}.send{display:block;width:100%;background:#a5e9d1;border:0;color:#245c4c;border-radius:12px;padding:16px 18px;font-weight:700;font-size:15px;cursor:pointer;margin-top:18px}.send:hover{background:#8bdcbe}.foot{text-align:center;font-size:12px;color:#92889e;margin-top:18px}.hide{display:none!important}.coupon-row{display:flex;gap:10px}.coupon-row input{flex:1;min-width:0}.coupon-row button{border:0;border-radius:9px;background:var(--lilas-esc);color:#fff;padding:10px 18px;font-weight:650;cursor:pointer;white-space:nowrap}.coupon-row button:disabled{opacity:.6;cursor:wait}.coupon-message{font-size:13px;margin:8px 0 0}.coupon-message.ok{color:#28634a}.coupon-message.error{color:#a44155}.total-line{font-weight:700;color:var(--lilas-esc)}@media(max-width:580px){.wrap{padding:12px 12px 40px}.card{padding:18px}.two{grid-template-columns:1fr}.intro h1{font-size:22px}.banner{border-radius:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<img class="banner" src="banner-formulario.png" alt="Cabral Digital — Seu evento começa pelo convite" width="1200" height="600">
+<div class="intro"><h1>Pedido personalizado</h1><p>Não encontrou seu tema? Escolha o tipo de convite e preencha os dados da sua festa.</p></div>
+<div id="statusProduto" class="card" role="status">Carregando tipos de convite e preços...</div><form id="pedidoForm" hidden>
+<section class="card" id="produtoCard"><h2>Escolha seu convite</h2>
+<div class="field"><label for="tipoEscolhido">Tipo de convite <span class="req">*</span></label><select id="tipoEscolhido" required><option value="">Selecione o tipo de convite</option></select><p class="hint">Os valores são consultados no catálogo da Cabral Digital.</p></div>
+<div class="field"><label for="eventoEscolhido">Tipo de evento <span class="req">*</span></label><select id="eventoEscolhido" required><option value="geral">Aniversário infantil ou outro evento</option><option value="15anos">15 anos</option><option value="casamento">Casamento</option></select></div>
+<div class="field"><label for="temaDesejado">Tema desejado <span class="req">*</span></label><input id="temaDesejado" maxlength="160" required placeholder="Ex.: Jardim Encantado, Princesas, Futebol..."></div>
+<div class="summary" id="resumo">Selecione o tipo de convite para ver o valor.</div></section>
+<section class="card"><h2>Informações para personalização</h2><p id="multiplosAviso" class="hint hide" style="margin-bottom:16px">Preencha os dados comuns do evento. Se os produtos precisarem de informações diferentes, detalhe cada um no campo Observações adicionais.</p>
+<div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
+
+<div id="camposGerais"><div class="field"><label for="nome">Nome do(a) aniversariante ou homenageado(a) <span class="req">*</span></label><input id="nome" name="nome" required maxlength="140"></div>
+<div class="field"><label for="idade">Idade (se aplicável)</label><input id="idade" name="idade" placeholder="Ex.: 2 aninhos" maxlength="40"></div>
+<div class="two"><div class="field"><label for="data">Data da festa <span class="req">*</span></label><input type="date" id="data" name="data" required></div><div class="field"><label for="hora">Horário da festa <span class="req">*</span></label><input type="time" id="hora" name="hora" required></div></div>
+<div class="field"><label for="endereco">Endereço completo da festa <span class="req">*</span></label><textarea id="endereco" name="endereco" required placeholder="Local, rua, número, bairro, cidade e referência, se houver"></textarea></div>
+</div>
+<div id="camposEspeciais" class="hide">
+ <div class="field"><label for="paleta">Paleta de cores desejada <span class="req">*</span></label><input id="paleta" maxlength="200" placeholder="Ex.: verde-sálvia, branco e dourado"></div>
+ <div id="camposCasamento" class="hide">
+  <div class="two"><div class="field"><label for="noiva">Nome da noiva <span class="req">*</span></label><input id="noiva" maxlength="120"></div><div class="field"><label for="noivo">Nome do noivo <span class="req">*</span></label><input id="noivo" maxlength="120"></div></div>
+  <div class="two"><div class="field"><label for="dataCasamento">Data do casamento <span class="req">*</span></label><input type="date" id="dataCasamento"></div><div class="field"><label for="horaCasamento">Horário da cerimônia <span class="req">*</span></label><input type="time" id="horaCasamento"></div></div>
+  <div class="field"><label for="cerimonia">Nome e endereço completo da cerimônia <span class="req">*</span></label><textarea id="cerimonia" placeholder="Nome do local, rua, número, bairro e cidade"></textarea></div>
+  <div class="field"><label>Cerimônia e recepção serão no mesmo local? <span class="req">*</span></label><div class="radio"><label><input type="radio" name="mesmoLocal" value="Sim" checked> Sim</label><label><input type="radio" name="mesmoLocal" value="Não"> Não</label></div></div>
+  <div id="recepcaoSeparada" class="hide"><div class="field"><label for="recepcao">Nome e endereço completo da recepção <span class="req">*</span></label><textarea id="recepcao" placeholder="Nome do local, rua, número, bairro e cidade"></textarea></div><div class="field"><label for="horaRecepcao">Horário da recepção (se diferente)</label><input type="time" id="horaRecepcao"></div></div>
+  <div class="field"><label for="fraseBiblica">Frase bíblica ou versículo (opcional)</label><textarea id="fraseBiblica" placeholder="Se desejar, escreva a frase e a referência bíblica"></textarea></div>
+  <div class="field"><label>Deseja incluir os nomes dos pais dos noivos?</label><div class="radio"><label><input type="radio" name="paisCasamento" value="Sim"> Sim</label><label><input type="radio" name="paisCasamento" value="Não" checked> Não</label></div></div>
+  <div id="paisCasamentoCampos" class="hide"><div class="field"><label for="paisNoiva">Nomes dos pais da noiva <span class="req">*</span></label><input id="paisNoiva" maxlength="220"></div><div class="field"><label for="paisNoivo">Nomes dos pais do noivo <span class="req">*</span></label><input id="paisNoivo" maxlength="220"></div></div>
+ </div>
+ <div id="campos15Anos" class="hide">
+  <div class="field"><label for="debutante">Nome da debutante <span class="req">*</span></label><input id="debutante" maxlength="140"></div>
+  <div class="two"><div class="field"><label for="data15">Data da festa <span class="req">*</span></label><input id="data15" type="date"></div><div class="field"><label for="hora15">Horário da festa <span class="req">*</span></label><input id="hora15" type="time"></div></div>
+  <div class="field"><label for="local15">Nome e endereço completo da festa <span class="req">*</span></label><textarea id="local15" placeholder="Nome do espaço, rua, número, bairro e cidade"></textarea></div>
+  <div class="field"><label for="frase15">Frase especial (opcional)</label><textarea id="frase15" placeholder="Escreva a frase, caso queira incluir"></textarea></div>
+  <div class="field"><label>Deseja incluir os nomes dos pais?</label><div class="radio"><label><input type="radio" name="pais15" value="Sim"> Sim</label><label><input type="radio" name="pais15" value="Não" checked> Não</label></div></div>
+  <div id="pais15Campos" class="hide"><div class="field"><label for="nomesPais15">Nome dos pais <span class="req">*</span></label><input id="nomesPais15" maxlength="220"></div></div>
+ </div>
+</div>
+<div class="field conditional" data-types="interativo"><label for="confirmacao">WhatsApp para confirmação de presença</label><input id="confirmacao" name="confirmacao" inputmode="tel" placeholder="DDD + número" maxlength="30"></div>
+<div class="field conditional" data-types="interativo"><label for="presentes">Sugestões de presentes</label><textarea id="presentes" name="presentes" placeholder="Se não desejar incluir, deixe em branco"></textarea></div>
+<div class="field"><label>O convite terá foto?</label><div class="radio"><label><input type="radio" name="foto" value="Sim"> Sim</label><label><input type="radio" name="foto" value="Não" checked> Não</label></div><p class="hint">Se sim, envie a foto separadamente pelo WhatsApp após abrir a conversa.</p></div>
+<div class="field" id="fraseGeralCampo"><label for="frase">Deseja personalizar a frase do convite?</label><textarea id="frase" name="frase" placeholder="Se desejar, escreva a frase aqui. Caso contrário, deixe em branco."></textarea></div>
+<div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
+</section>
+<section class="card"><h2>Cupom de desconto</h2><div class="field"><label for="cupomCodigo">Código do cupom (opcional)</label><div class="coupon-row"><input id="cupomCodigo" autocomplete="off" maxlength="60" placeholder="Digite seu cupom"><button id="aplicarCupom" type="button">Aplicar cupom</button></div><p id="cupomMensagem" class="coupon-message" role="status" aria-live="polite"></p><p class="hint">Cupons de primeira compra estão sujeitos à confirmação pela Cabral Digital antes do pagamento.</p></div><div class="summary" id="resumoValores" aria-live="polite">O valor será exibido após selecionar o convite.</div></section><section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as políticas da loja e estou ciente de que a arte será personalizada no tema informado, seguindo as características do tipo de convite escolhido. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
+</form><p class="foot">Cabral Digital · Artes Digitais</p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+'use strict';
+const WHATSAPP='5521996625253';
+
+const el=id=>document.getElementById(id);
+const SUPABASE_URL='https://eqvhreltmgbruqyrahac.supabase.co';
+const SUPABASE_KEY='sb_publishable_fEd_o4cffejuNqVzX-N8XA_BB0SRr3Y';
+let produto=null, produtos=[], cupomAplicado=null, validandoCupom=false, modoEvento='geral';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const dinheiro=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const subtotal=()=>Math.round(produtos.reduce((s,x)=>s+x.preco,0)*100)/100;
+function melhorDesconto(){const valor=subtotal();const auto=valor>70?10:0;const cupom=cupomAplicado?Number(cupomAplicado.desconto_percentual):0;return cupom>auto?{percent:cupom,tipo:'cupom'}:auto?{percent:auto,tipo:'automatico'}:cupom?{percent:cupom,tipo:'cupom'}:{percent:0,tipo:'nenhum'};}
+function totalComDesconto(){const s=subtotal(),d=melhorDesconto();return Math.max(0,Math.round(s*(1-d.percent/100)*100)/100);}
+function mostrarValores(){if(!produtos.length)return;const s=subtotal(),d=melhorDesconto();const linhas=['Subtotal: '+dinheiro(s)];if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom aplicado: '+cupomAplicado.codigo:'Desconto automático para compras acima de R$ 70,00');linhas.push('Desconto ('+d.percent.toLocaleString('pt-BR')+'%): -'+dinheiro(s-totalComDesconto()));}if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado: '+cupomAplicado.codigo+' (não acumulado; desconto automático mais vantajoso)');linhas.push('Valor final: '+dinheiro(totalComDesconto()));el('resumoValores').textContent=linhas.join('\n');}
+function mensagemCupom(texto,erro=false){const node=el('cupomMensagem');node.textContent=texto;node.className='coupon-message'+(texto?(erro?' error':' ok'):'');}
+function limparCupom(){cupomAplicado=null;mensagemCupom('');mostrarValores();}
+el('cupomCodigo').addEventListener('input',limparCupom);
+el('aplicarCupom').addEventListener('click',async()=>{
+ if(validandoCupom||!produtos.length)return;const codigo=el('cupomCodigo').value.trim().toUpperCase();
+ limparCupom();if(!codigo){mensagemCupom('Digite um código de cupom.',true);return;}
+ validandoCupom=true;el('aplicarCupom').disabled=true;mensagemCupom('Verificando cupom...');
+ try{const {data,error}=await db.from('cupons_catalogo').select('codigo,desconto_percentual,primeira_compra,ativo,validade').eq('codigo',codigo).eq('ativo',true).maybeSingle();if(error)throw error;
+ const hoje=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ if(!data||(data.validade&&data.validade<hoje)){mensagemCupom('Cupom inválido, inativo ou vencido.',true);return;}
+ if(el('cupomCodigo').value.trim().toUpperCase()!==codigo)return;
+ cupomAplicado=data;mostrarValores();mensagemCupom(Number(data.desconto_percentual)<= (subtotal()>70?10:0)?'Cupom válido. O desconto automático é igual ou mais vantajoso e não será acumulado.':data.primeira_compra?'Cupom de primeira compra aplicado! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto, sujeito à confirmação antes do pagamento.':'Cupom aplicado com sucesso! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto.');
+ }catch(err){console.error('Erro ao verificar cupom',err);mensagemCupom('Não foi possível verificar o cupom. Tente novamente.',true)}finally{validandoCupom=false;el('aplicarCupom').disabled=false;}
+});
+const normalizeTipo=v=>{v=String(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
+function normalizar(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function identificarEvento(categoria,tema){const cat=normalizar(categoria),th=normalizar(tema);if(/casamento|noivos|noivas/.test(cat)||(!cat&&/casamento|noivos|noivas/.test(th)))return 'casamento';if(/15\s*anos|debutante/.test(cat)||(!cat&&/15\s*anos|debutante/.test(th)))return '15anos';return 'geral';}
+function radioValor(nome){return document.querySelector('input[name="'+nome+'"]:checked')?.value||'Não';}
+function ativarSecao(id,mostrar){const sec=el(id);sec.classList.toggle('hide',!mostrar);sec.querySelectorAll('input,textarea,select').forEach(x=>{x.disabled=!mostrar;if(x.dataset.obrigatorio==='1')x.required=mostrar;});}
+function configurarEvento(modo){modoEvento=modo;ativarSecao('camposGerais',modo==='geral');ativarSecao('camposEspeciais',modo!=='geral');ativarSecao('camposCasamento',modo==='casamento');ativarSecao('campos15Anos',modo==='15anos');el('fraseGeralCampo').classList.toggle('hide',modo!=='geral');el('frase').disabled=modo!=='geral';
+ ['paleta','noiva','noivo','dataCasamento','horaCasamento','cerimonia','recepcao','debutante','data15','hora15','local15','paisNoiva','paisNoivo','nomesPais15'].forEach(id=>el(id).dataset.obrigatorio='1');
+ ['nome','data','hora','endereco'].forEach(id=>el(id).required=modo==='geral');
+ ['paleta','noiva','noivo','dataCasamento','horaCasamento','cerimonia','debutante','data15','hora15','local15'].forEach(id=>el(id).required=modo!=='geral'&&(id==='paleta'||(modo==='casamento'&&['noiva','noivo','dataCasamento','horaCasamento','cerimonia'].includes(id))||(modo==='15anos'&&['debutante','data15','hora15','local15'].includes(id))));
+ atualizarLocalRecepcao();atualizarPais();
+}
+function atualizarLocalRecepcao(){const mostrar=modoEvento==='casamento'&&radioValor('mesmoLocal')==='Não';ativarSecao('recepcaoSeparada',mostrar);el('recepcao').required=mostrar;}
+function atualizarPais(){const cas=modoEvento==='casamento'&&radioValor('paisCasamento')==='Sim';const quinze=modoEvento==='15anos'&&radioValor('pais15')==='Sim';ativarSecao('paisCasamentoCampos',cas);ativarSecao('pais15Campos',quinze);}
+document.querySelectorAll('input[name="mesmoLocal"]').forEach(x=>x.addEventListener('change',atualizarLocalRecepcao));
+document.querySelectorAll('input[name="paisCasamento"],input[name="pais15"]').forEach(x=>x.addEventListener('change',atualizarPais));
+function atualizar(tipo){document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
+async function carregarProduto(){
+ try{
+  const {data,error}=await db.from('modelos_catalogo').select('id,nome,tipo,preco,ativo').eq('ativo',true);
+  if(error)throw error;
+  const precos=new Map();
+  (data||[]).forEach(m=>{
+   const tipo=String(m.tipo||'').trim();const preco=Number(m.preco);
+   if(!tipo||!Number.isFinite(preco)||preco<=0)return;
+   if(!precos.has(tipo))precos.set(tipo,new Set());
+   precos.get(tipo).add(preco);
+  });
+  const opcoes=[];
+  [...precos.entries()].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR')).forEach(([tipo,valores])=>{
+   [...valores].sort((a,b)=>a-b).forEach(preco=>opcoes.push({tipo,preco}));
+  });
+  if(!opcoes.length)throw Error('Nenhum tipo de convite disponível no catálogo.');
+  const select=el('tipoEscolhido');
+  opcoes.forEach((o,i)=>{const opt=document.createElement('option');opt.value=String(i);opt.textContent=o.tipo+' — '+dinheiro(o.preco);select.appendChild(opt)});
+  function selecionar(){
+   const idx=select.value;
+   produtos=idx===''?[]:[{id:null,tema:get('temaDesejado')||'Tema personalizado',modelo:'Pedido personalizado',tipo:opcoes[Number(idx)].tipo,preco:opcoes[Number(idx)].preco,categoria:normalizeTipo(opcoes[Number(idx)].tipo)}];
+   produto=produtos[0]||null;
+   el('resumo').textContent=produto?'Tipo: '+produto.tipo+'\nValor: '+dinheiro(produto.preco):'Selecione o tipo de convite para ver o valor.';
+   atualizar(produto?.categoria==='interativo'?'interativo':'');
+   limparCupom();mostrarValores();
+  }
+  select.addEventListener('change',selecionar);
+  el('eventoEscolhido').addEventListener('change',()=>configurarEvento(el('eventoEscolhido').value));
+  el('temaDesejado').addEventListener('input',()=>{if(produto)produto.tema=get('temaDesejado')||'Tema personalizado'});
+  configurarEvento('geral');atualizar('');
+  el('statusProduto').hidden=true;el('pedidoForm').hidden=false;
+ }catch(err){console.error('Erro ao carregar opções',err);el('statusProduto').textContent='Não foi possível carregar os tipos de convite e preços. Atualize a página ou entre em contato com a Cabral Digital.';}
+}
+carregarProduto();
+function dataBR(v){if(!v)return'';const a=v.split('-');return a.length===3?[a[2],a[1],a[0]].join('/'):v}
+const get=id=>el(id).value.trim();
+el('pedidoForm').addEventListener('submit',e=>{
+e.preventDefault();if(!e.currentTarget.reportValidity())return;
+if(!produtos.length||validandoCupom||!get('temaDesejado'))return;
+if(el('cupomCodigo').value.trim()&&!cupomAplicado){mensagemCupom('Clique em Aplicar cupom ou apague o código antes de finalizar.',true);el('cupomCodigo').focus();return;}
+const tipo=produtos.some(x=>x.categoria==='interativo')?'interativo':'';
+const d=melhorDesconto(),s=subtotal();
+const linhas=['*NOVO PEDIDO PERSONALIZADO — CABRAL DIGITAL*','','*PRODUTO*'];
+produtos.forEach(x=>linhas.push('Tema solicitado: '+get('temaDesejado'),'Tipo: '+x.tipo,'Valor: '+dinheiro(x.preco),''));
+linhas.push('Subtotal: '+dinheiro(s));
+if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom: '+cupomAplicado.codigo:'Desconto automático acima de R$ 70,00','Desconto: '+d.percent.toLocaleString('pt-BR')+'% (-'+dinheiro(s-totalComDesconto())+')');}
+if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado (não acumulado): '+cupomAplicado.codigo);
+linhas.push('Valor final: '+dinheiro(totalComDesconto()));
+if(d.tipo==='cupom'&&cupomAplicado.primeira_compra)linhas.push('*Desconto de primeira compra sujeito à confirmação pela Cabral Digital antes do pagamento.*');
+linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel'));
+ if(modoEvento==='casamento'){
+  linhas.push('Evento: Casamento','Noiva: '+get('noiva'),'Noivo: '+get('noivo'),'Paleta de cores: '+get('paleta'),'Data: '+dataBR(get('dataCasamento')),'Horário da cerimônia: '+get('horaCasamento'),'Cerimônia: '+get('cerimonia'),'Cerimônia e recepção no mesmo local: '+radioValor('mesmoLocal'));
+  if(radioValor('mesmoLocal')==='Não'){linhas.push('Recepção: '+get('recepcao'));if(get('horaRecepcao'))linhas.push('Horário da recepção: '+get('horaRecepcao'));}
+  if(get('fraseBiblica'))linhas.push('Frase bíblica: '+get('fraseBiblica'));
+  linhas.push('Incluir pais dos noivos: '+radioValor('paisCasamento'));
+  if(radioValor('paisCasamento')==='Sim')linhas.push('Pais da noiva: '+get('paisNoiva'),'Pais do noivo: '+get('paisNoivo'));
+ }else if(modoEvento==='15anos'){
+  linhas.push('Evento: 15 anos','Debutante: '+get('debutante'),'Paleta de cores: '+get('paleta'),'Data: '+dataBR(get('data15')),'Horário: '+get('hora15'),'Local da festa: '+get('local15'));
+  if(get('frase15'))linhas.push('Frase especial: '+get('frase15'));
+  linhas.push('Incluir nomes dos pais: '+radioValor('pais15'));
+  if(radioValor('pais15')==='Sim')linhas.push('Pais: '+get('nomesPais15'));
+ }else linhas.push('Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco'));
+if(tipo==='interativo'){if(get('confirmacao'))linhas.push('WhatsApp para confirmação: '+get('confirmacao'));if(get('presentes'))linhas.push('Sugestões de presentes: '+get('presentes'))}
+const foto=document.querySelector('input[name="foto"]:checked');linhas.push('Terá foto: '+(foto?foto.value:'Não'));
+if(modoEvento==='geral'&&get('frase'))linhas.push('Frase personalizada: '+get('frase'));
+if(get('observacoes'))linhas.push('Observações: '+get('observacoes'));
+linhas.push('','*CONFIRMAÇÃO*','Li e aceito as políticas da loja e as condições do pedido personalizado.','','Gostaria de prosseguir com minha encomenda.');
+const url='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(linhas.join('\n'));
+window.location.href=url;
+});
+})();
+</script></body></html>
