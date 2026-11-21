@@ -15,6 +15,7 @@
 <section class="card"><h2>Informações para personalização</h2><p id="multiplosAviso" class="hint hide" style="margin-bottom:16px">Preencha os dados comuns do evento. Se os produtos precisarem de informações diferentes, detalhe cada um no campo Observações adicionais.</p>
 <div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
 
+<div class="field"><label for="temaDesejado">Tema desejado para personalização <span class="req">*</span></label><input id="temaDesejado" name="temaDesejado" required maxlength="160" placeholder="Ex.: Bailarina, Jardim Encantado, floral minimalista..."><p class="hint">Informe o tema ou estilo que deseja. Não é necessário escolher um modelo.</p></div>
 <div id="camposGerais"><div class="field"><label for="nome">Nome do(a) aniversariante ou homenageado(a) <span class="req">*</span></label><input id="nome" name="nome" required maxlength="140"></div>
 <div class="field"><label for="idade">Idade (se aplicável)</label><input id="idade" name="idade" placeholder="Ex.: 2 aninhos" maxlength="40"></div>
 <div class="two"><div class="field"><label for="data">Data da festa <span class="req">*</span></label><input type="date" id="data" name="data" required></div><div class="field"><label for="hora">Horário da festa <span class="req">*</span></label><input type="time" id="hora" name="hora" required></div></div>
@@ -102,11 +103,10 @@ async function carregarProduto(){
   if(carrinho){try{const saved=JSON.parse(localStorage.getItem('cabraldigital_carrinho_v1')||'[]');if(Array.isArray(saved))ids=[...new Set(saved.map(String))].slice(0,40)}catch(e){}}
   else if(p.get('id'))ids=[p.get('id')];
   if(!ids.length){el('statusProduto').innerHTML='Seu carrinho está vazio. <a href="./index.html">Voltar ao catálogo</a>.';return;}
-  const [ms,ts,cs]=await Promise.all([db.from('modelos_catalogo').select('*').in('id',ids).eq('ativo',true),db.from('temas_catalogo').select('*').eq('ativo',true),db.from('categorias_catalogo').select('id,nome')]);
-  if(ms.error||ts.error||cs.error)throw ms.error||ts.error||cs.error;
-  const temas=ts.data||[];
-  produtos=ids.map(id=>{const m=(ms.data||[]).find(x=>String(x.id)===id);if(!m)return null;const t=temas.find(x=>String(x.id)===String(m.tema_id));if(!t)return null;return{id:m.id,tema:t.nome,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:normalizeTipo(m.tipo),evento:identificarEvento((cs.data||[]).find(c=>String(c.id)===String(t.categoria_id))?.nome,t.nome)}}).filter(Boolean);
-  if(produtos.length!==ids.length)throw Error('Algum produto não está mais disponível. Revise seu carrinho.');
+     const [ms,cs]=await Promise.all([db.from('modelos_catalogo').select('*').in('id',ids).eq('ativo',true),db.from('categorias_catalogo').select('id,nome')]);
+   if(ms.error||cs.error)throw ms.error||cs.error;
+   produtos=ids.map(id=>{const m=(ms.data||[]).find(x=>String(x.id)===id);if(!m)return null;const c=(cs.data||[]).find(c=>String(c.id)===String(m.categoria_id));if(!c)return null;return{id:m.id,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:normalizeTipo((m.tipo||'')+' '+(m.nome||'')),categoriaNome:c.nome,evento:identificarEvento(c.nome,'')}}).filter(Boolean);
+if(produtos.length!==ids.length)throw Error('Algum produto não está mais disponível. Revise seu carrinho.');
   produto=produtos[0];
   const multi=produtos.length>1;
   el('produtoTitulo').textContent=multi?'Produtos do carrinho':'Convite escolhido';
@@ -114,7 +114,7 @@ async function carregarProduto(){
    const eventos=[...new Set(produtos.map(x=>x.evento).filter(x=>x!=='geral'))];
    configurarEvento(eventos.length===1?eventos[0]:'geral');
    if(eventos.length>1)el('multiplosAviso').textContent='Seu carrinho reúne convites de casamento e de 15 anos. Informe os dados específicos de cada evento nas observações adicionais.';
-  el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.tema+' — '+x.modelo+'\nTipo: '+x.tipo+'\nValor: '+dinheiro(x.preco)).join('\n\n');
+  el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.modelo+'\nTipo: '+x.tipo+'\nValor: '+dinheiro(x.preco)).join('\n\n');
   mostrarValores();
   atualizar(produtos.some(x=>x.categoria==='interativo')?'interativo':'');
   el('statusProduto').hidden=true;el('pedidoForm').hidden=false;
@@ -130,13 +130,13 @@ if(el('cupomCodigo').value.trim()&&!cupomAplicado){mensagemCupom('Clique em Apli
 const tipo=produtos.some(x=>x.categoria==='interativo')?'interativo':'';
 const d=melhorDesconto(),s=subtotal();
 const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTOS*'];
-produtos.forEach((x,i)=>linhas.push((i+1)+'. '+x.tema+' — '+x.modelo,'Tipo: '+x.tipo,'Valor: '+dinheiro(x.preco),''));
+produtos.forEach((x,i)=>linhas.push((i+1)+'. '+x.modelo,'Tipo: '+x.tipo,'Valor: '+dinheiro(x.preco),''));
 linhas.push('Subtotal: '+dinheiro(s));
 if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom: '+cupomAplicado.codigo:'Desconto automático acima de R$ 70,00','Desconto: '+d.percent.toLocaleString('pt-BR')+'% (-'+dinheiro(s-totalComDesconto())+')');}
 if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado (não acumulado): '+cupomAplicado.codigo);
 linhas.push('Valor final: '+dinheiro(totalComDesconto()));
 if(d.tipo==='cupom'&&cupomAplicado.primeira_compra)linhas.push('*Desconto de primeira compra sujeito à confirmação pela Cabral Digital antes do pagamento.*');
-linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel'));
+linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel'),'Tema desejado: '+get('temaDesejado'));
  if(modoEvento==='casamento'){
   linhas.push('Evento: Casamento','Noiva: '+get('noiva'),'Noivo: '+get('noivo'),'Paleta de cores: '+get('paleta'),'Data: '+dataBR(get('dataCasamento')),'Horário da cerimônia: '+get('horaCasamento'),'Cerimônia: '+get('cerimonia'),'Cerimônia e recepção no mesmo local: '+radioValor('mesmoLocal'));
   if(radioValor('mesmoLocal')==='Não'){linhas.push('Recepção: '+get('recepcao'));if(get('horaRecepcao'))linhas.push('Horário da recepção: '+get('horaRecepcao'));}
