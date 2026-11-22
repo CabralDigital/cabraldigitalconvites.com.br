@@ -48,7 +48,69 @@ const SUPABASE_URL='https://eqvhreltmgbruqyrahac.supabase.co';
 const SUPABASE_KEY='sb_publishable_fEd_o4cffejuNqVzX-N8XA_BB0SRr3Y';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let models=[],categories=[],filter='todos',kind='todos',selectedCollection=null,collectionModelIds=new Set();const $=id=>document.getElementById(id);const fmt=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});function catOf(m){return categories.find(c=>String(c.id)===String(m.categoria_id))?.slug||''}function node(tag,cls,txt){const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;return el}function render(){const root=$('cards');root.replaceChildren();const query=$('search').value.trim().toLocaleLowerCase('pt-BR');const visible=models.filter(m=>{if(selectedCollection&&!collectionModelIds.has(String(m.id)))return false;const slug=catOf(m);return m.ativo&&slug&&(filter==='todos'||slug===filter)&&(kind==='todos'||(kind==='animados'?/animad|gif|gold/i.test(m.tipo||'')||/animad|gif|gold/i.test(m.nome||''):kind==='digitais'?/interativ|tradicional|png|livrinho|premium/i.test((m.tipo||'')+' '+(m.nome||'')):kind==='adicionais'?slug==='servicos-adicionais'||slug==='retrospectiva':kind==='combos'?slug==='combos':true))&&(!query||`${m.nome} ${m.tipo} ${m.descricao||''}`.toLocaleLowerCase('pt-BR').includes(query))}).sort((a,b)=>(a.ordem||0)-(b.ordem||0));if(!visible.length){root.append(node('div','empty','Nenhum serviço encontrado nesta seleção.'));return}for(const m of visible){const card=node('article','product');const thumb=node('div','thumb');if(m.imagem_url){const im=node('img');im.src=m.imagem_url;im.alt=`Prévia ilustrativa de ${m.nome}`;im.loading='lazy';thumb.append(im)}if(m.mais_pedido===true)thumb.append(node('span','pill','★ MAIS VENDIDO'));card.append(thumb);const body=node('div','content');body.append(node('h3','',m.nome));body.append(node('div','sub',m.tipo));body.append(node('div','price',fmt(m.preco)));const actions=node('div','actions');const preview=node('button','outline','Visualizar');preview.addEventListener('click',()=>showPreview(m));actions.append(preview);const buy=node('button','primary','Comprar');buy.addEventListener('click',()=>{window.location.href='./pedido.html?id='+encodeURIComponent(m.id)});actions.append(buy);const addCart=node('button','cart-add','+ Adicionar ao carrinho');addCart.type='button';addCart.addEventListener('click',()=>addToCart(m));body.append(actions);body.append(addCart);card.append(body);root.append(card)}}
-function showPreview(m){$('modalTitle').textContent=`${m.nome} — ${m.tipo}`;const viewer=$('viewer');viewer.replaceChildren();const url=(m.previa_url||'').trim();let media=null;let parsed=null;try{if(url)parsed=new URL(url)}catch(e){}if(parsed&&parsed.protocol==='https:'){const host=parsed.hostname.replace(/^www\./,'');let embed=null;if(host==='youtu.be')embed=parsed.pathname.slice(1);if(host==='youtube.com'||host==='m.youtube.com')embed=parsed.searchParams.get('v')||(parsed.pathname.startsWith('/shorts/')?parsed.pathname.split('/')[2]:null);if(embed&&/^[a-zA-Z0-9_-]{11}$/.test(embed)){media=node('iframe');media.src=`https://www.youtube-nocookie.com/embed/${embed}`;media.allow='autoplay; encrypted-media; picture-in-picture';media.allowFullscreen=true}else if(/\.(mp4|webm|ogg)$/i.test(parsed.pathname)){media=node('video');media.src=url;media.controls=true;media.playsInline=true;media.autoplay=true;media.muted=true;media.defaultMuted=true;media.loop=true;media.preload='auto';media.setAttribute('autoplay','');media.setAttribute('muted','');media.setAttribute('playsinline','');media.setAttribute('loop','')}else if(/\.(png|jpe?g|webp|gif)$/i.test(parsed.pathname)){media=node('img');media.src=url}else{media=node('iframe');media.src=url;media.title=`Prévia interativa de ${m.nome}`;media.allow='autoplay; fullscreen; picture-in-picture';media.allowFullscreen=true;media.referrerPolicy='strict-origin-when-cross-origin'}}if(!media){const fallback=m.imagem_url;if(fallback){media=node('img');media.src=fallback}else{media=node('div','empty','Prévia ainda não cadastrada.')}}viewer.append(media);const details=$('productDetails');details.replaceChildren();if(parsed&&parsed.protocol==='https:'&&!/\.(mp4|webm|ogg|png|jpe?g|webp|gif)$/i.test(parsed.pathname)&&!(/youtube\.com|youtu\.be/.test(parsed.hostname))){const external=node('a','outline','Se a prévia não carregar, abrir convite em nova aba');external.href=url;external.target='_blank';external.rel='noopener noreferrer';external.style.cssText='display:block;text-align:center;padding:11px;border-radius:10px;margin:10px 0';details.append(external)}const price=node('div','details-price',fmt(m.preco));details.append(price);for(const [heading,value] of [['Descrição do produto',m.descricao],['Informações importantes',m.informacoes_importantes],['Políticas da loja',m.politicas_loja]]){if(!value||!String(value).trim())continue;const section=node('section','details-block');section.append(node('h4','',heading));section.append(node('p','',String(value)));details.append(section)}const buyDetails=node('button','primary details-buy','Comprar este convite');buyDetails.addEventListener('click',()=>{window.location.href='./pedido.html?id='+encodeURIComponent(m.id)});details.append(buyDetails);const addDetails=node('button','cart-add','+ Adicionar ao carrinho');addDetails.type='button';addDetails.addEventListener('click',()=>{addToCart(m);closeModal()});details.append(addDetails);$('modal').classList.add('open');document.body.style.overflow='hidden'}function closeModal(){$('modal').classList.remove('open');$('viewer').replaceChildren();document.body.style.overflow=''}$('close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x.dataset.filter===filter));render();document.querySelector('main').scrollIntoView({behavior:'smooth'})}));document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=kind===b.dataset.kind?'todos':b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('active',x.dataset.kind===kind));render();document.querySelector('main').scrollIntoView({behavior:'smooth'})}));$('searchToggle').addEventListener('click',()=>{const box=$('headerSearch');const open=box.classList.toggle('open');$('searchToggle').setAttribute('aria-expanded',String(open));if(open)$('search').focus();});$('searchForm').addEventListener('submit',e=>{e.preventDefault();render();document.querySelector('main').scrollIntoView({behavior:'smooth'})});$('search').addEventListener('input',render);
+function isInteractiveInvitation(m){
+ const label=`${m.nome||''} ${m.tipo||''}`.toLocaleLowerCase('pt-BR');
+ // Somente convites interativos (incluindo Curto/Médio/Estendido/Premium) e livrinhos.
+ // Não confundir com serviços adicionais ou vídeos animados.
+ if(/animad|\bgif\b|\bgold\b|tradicional/.test(label))return false;
+ if(/livrinho|interativ/.test(label))return true;
+ const slug=catOf(m);
+ return (slug==='15-anos'||slug==='casamento')&&/\b(curto|médio|medio|estendido|premium)\b/.test(label);
+}
+function showPreview(m){
+ $('modalTitle').textContent=`${m.nome} — ${m.tipo}`;
+ const viewer=$('viewer');viewer.replaceChildren();
+ const url=(m.previa_url||'').trim();
+ let parsed=null;try{if(url)parsed=new URL(url)}catch(e){}
+ const validUrl=parsed&&parsed.protocol==='https:';
+ const interactive=isInteractiveInvitation(m);
+ let media=null;
+ if(interactive){
+   // A página do convite nunca é incorporada: mostrar apenas a capa cadastrada.
+   if(m.imagem_url){media=node('img');media.src=m.imagem_url;media.alt=`Capa de ${m.nome}`}
+ }else if(validUrl){
+   const host=parsed.hostname.replace(/^www\./,'');let embed=null;
+   if(host==='youtu.be')embed=parsed.pathname.slice(1);
+   if(host==='youtube.com'||host==='m.youtube.com')embed=parsed.searchParams.get('v')||(parsed.pathname.startsWith('/shorts/')?parsed.pathname.split('/')[2]:null);
+   if(embed&&/^[a-zA-Z0-9_-]{11}$/.test(embed)){
+     media=node('iframe');media.src=`https://www.youtube-nocookie.com/embed/${embed}?autoplay=1&mute=1&loop=1&playlist=${embed}`;
+     media.title=`Vídeo de ${m.nome}`;media.allow='autoplay; encrypted-media; picture-in-picture';media.allowFullscreen=true;
+   }else if(/\.(mp4|webm|ogg)$/i.test(parsed.pathname)){
+     media=node('video');media.src=url;media.controls=true;media.playsInline=true;
+     media.autoplay=true;media.muted=true;media.defaultMuted=true;media.loop=true;media.preload='auto';
+     media.setAttribute('autoplay','');media.setAttribute('muted','');media.setAttribute('playsinline','');media.setAttribute('loop','');
+   }else if(/\.(png|jpe?g|webp|gif)$/i.test(parsed.pathname)){
+     media=node('img');media.src=url;media.alt=`Prévia de ${m.nome}`;
+   }
+ }
+ if(!media){
+   if(m.imagem_url){media=node('img');media.src=m.imagem_url;media.alt=`Capa de ${m.nome}`}
+   else media=node('div','empty','Imagem de apresentação ainda não cadastrada.');
+ }
+ viewer.append(media);
+ const details=$('productDetails');details.replaceChildren();
+ const price=node('div','details-price',fmt(m.preco));details.append(price);
+ for(const [heading,value] of [['Descrição do produto',m.descricao],['Informações importantes',m.informacoes_importantes],['Políticas da loja',m.politicas_loja]]){
+   if(!value||!String(value).trim())continue;
+   const section=node('section','details-block');section.append(node('h4','',heading));section.append(node('p','',String(value)));details.append(section);
+ }
+ if(interactive&&validUrl){
+   const test=node('a','primary details-buy','↗ Testar convite');
+   test.href=url;test.target='_blank';test.rel='noopener noreferrer';
+   test.style.cssText='display:block;text-align:center;text-decoration:none';
+   test.setAttribute('aria-label',`Testar funcionamento de ${m.nome} em nova aba`);
+   details.append(test);
+   const hint=node('p','notice','Abra a demonstração para experimentar os botões e recursos do convite.');
+   hint.style.textAlign='center';details.append(hint);
+ }
+ const buyDetails=node('button','primary details-buy','Comprar este convite');
+ buyDetails.addEventListener('click',()=>{window.location.href='./pedido.html?id='+encodeURIComponent(m.id)});details.append(buyDetails);
+ const addDetails=node('button','cart-add','+ Adicionar ao carrinho');addDetails.type='button';
+ addDetails.addEventListener('click',()=>{addToCart(m);closeModal()});details.append(addDetails);
+ $('modal').classList.add('open');document.body.style.overflow='hidden';
+ if(media.tagName==='VIDEO'){const attempt=media.play();if(attempt&&typeof attempt.catch==='function')attempt.catch(()=>{});}
+}
+function closeModal(){$('modal').classList.remove('open');$('viewer').replaceChildren();document.body.style.overflow=''}$('close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x.dataset.filter===filter));render();document.querySelector('main').scrollIntoView({behavior:'smooth'})}));document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=kind===b.dataset.kind?'todos':b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('active',x.dataset.kind===kind));render();document.querySelector('main').scrollIntoView({behavior:'smooth'})}));$('searchToggle').addEventListener('click',()=>{const box=$('headerSearch');const open=box.classList.toggle('open');$('searchToggle').setAttribute('aria-expanded',String(open));if(open)$('search').focus();});$('searchForm').addEventListener('submit',e=>{e.preventDefault();render();document.querySelector('main').scrollIntoView({behavior:'smooth'})});$('search').addEventListener('input',render);
 
 // Banners públicos: somente registros ativos, organizados pela ordem definida no painel.
 let bannerItems=[],bannerIndex=0,bannerTimer=null;
