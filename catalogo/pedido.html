@@ -44,11 +44,11 @@
 </div>
 <div class="field conditional" data-types="interativo"><label for="confirmacao">WhatsApp para confirmação de presença</label><input id="confirmacao" name="confirmacao" inputmode="tel" placeholder="DDD + número" maxlength="30"></div>
 <div class="field conditional" data-types="interativo"><label for="presentes">Sugestões de presentes</label><textarea id="presentes" name="presentes" placeholder="Se não desejar incluir, deixe em branco"></textarea></div>
-<div class="field"><label>O convite terá foto?</label><div class="radio"><label><input type="radio" name="foto" value="Sim"> Sim</label><label><input type="radio" name="foto" value="Não" checked> Não</label></div><p class="hint">Se sim, envie a foto separadamente pelo WhatsApp após abrir a conversa.</p></div>
+<div class="field" id="fotoCampo"><label>O convite terá foto?</label><div class="radio"><label><input type="radio" name="foto" value="Sim"> Sim</label><label><input type="radio" name="foto" value="Não" checked> Não</label></div><p class="hint">Se sim, envie a foto separadamente pelo WhatsApp após abrir a conversa.</p></div>
 <div class="field" id="fraseGeralCampo"><label for="frase">Deseja personalizar a frase do convite?</label><textarea id="frase" name="frase" placeholder="Se desejar, escreva a frase aqui. Caso contrário, deixe em branco."></textarea></div>
-<div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
+<div class="field hide" id="fraseSaveCampo"><label for="fraseSave">Deseja personalizar a frase do Save the Date?</label><textarea id="fraseSave"></textarea></div><div class="field hide" id="fraseLembreteCampo"><label for="fraseLembrete">Deseja personalizar a frase do lembrete?</label><textarea id="fraseLembrete"></textarea></div><p class="hint hide" id="avisoRetro">O envio das fotos para a produção da retrospectiva será combinado diretamente pelo WhatsApp.</p><p class="hint hide" id="avisoMascote">O envio das imagens de referência para a criação do mascotinho será combinado diretamente pelo WhatsApp.</p><div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
 </section>
-<section class="card"><h2>Cupom de desconto</h2><div class="field"><label for="cupomCodigo">Código do cupom (opcional)</label><div class="coupon-row"><input id="cupomCodigo" autocomplete="off" maxlength="60" placeholder="Digite seu cupom"><button id="aplicarCupom" type="button">Aplicar cupom</button></div><p id="cupomMensagem" class="coupon-message" role="status" aria-live="polite"></p><p class="hint">Cupons de primeira compra estão sujeitos à confirmação pela Cabral Digital antes do pagamento.</p></div><div class="summary" id="resumoValores" aria-live="polite">O valor será exibido após selecionar o convite.</div></section><section class="card" id="politicasPedido"><h2>Informações importantes e políticas da loja</h2><p class="hint" style="margin-bottom:12px">Leia as condições de cada serviço antes de finalizar seu pedido.</p><div id="politicasConteudo"></div></section><section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as <a href="#politicasPedido">políticas da loja e informações importantes</a> dos serviços selecionados. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
+<section class="card"><h2>Cupom de desconto</h2><div class="field"><label for="cupomCodigo">Código do cupom (opcional)</label><div class="coupon-row"><input id="cupomCodigo" autocomplete="off" maxlength="60" placeholder="Digite seu cupom"><button id="aplicarCupom" type="button">Aplicar cupom</button></div><p id="cupomMensagem" class="coupon-message" role="status" aria-live="polite"></p><p class="hint">Combos aceitam somente o cupom PRIMEIRACOMPRA. O desconto automático de 10% vale para serviços individuais acima de R$ 70,00. Descontos não acumulam. A primeira compra está sujeita à confirmação antes do pagamento.</p></div><div class="summary" id="resumoValores" aria-live="polite">O valor será exibido após selecionar o convite.</div></section><section class="card" id="politicasPedido"><h2>Informações importantes e políticas da loja</h2><p class="hint" style="margin-bottom:12px">Leia as condições de cada serviço antes de finalizar seu pedido.</p><div id="politicasConteudo"></div></section><section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as <a href="#politicasPedido">políticas da loja e informações importantes</a> dos serviços selecionados. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
 </form><p class="foot">Cabral Digital · Artes Digitais</p></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -63,9 +63,19 @@ let produto=null, produtos=[], cupomAplicado=null, validandoCupom=false, modoEve
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const dinheiro=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const subtotal=()=>Math.round(produtos.reduce((s,x)=>s+x.preco,0)*100)/100;
-function melhorDesconto(){const valor=subtotal();const auto=valor>70?10:0;const cupom=cupomAplicado?Number(cupomAplicado.desconto_percentual):0;return cupom>auto?{percent:cupom,tipo:'cupom'}:auto?{percent:auto,tipo:'automatico'}:cupom?{percent:cupom,tipo:'cupom'}:{percent:0,tipo:'nenhum'};}
-function totalComDesconto(){const s=subtotal(),d=melhorDesconto();return Math.max(0,Math.round(s*(1-d.percent/100)*100)/100);}
-function mostrarValores(){if(!produtos.length)return;const s=subtotal(),d=melhorDesconto();const linhas=['Subtotal: '+dinheiro(s)];if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom aplicado: '+cupomAplicado.codigo:'Desconto automático para compras acima de R$ 70,00');linhas.push('Desconto ('+d.percent.toLocaleString('pt-BR')+'%): -'+dinheiro(s-totalComDesconto()));}if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado: '+cupomAplicado.codigo+' (não acumulado; desconto automático mais vantajoso)');linhas.push('Valor final: '+dinheiro(totalComDesconto()));el('resumoValores').textContent=linhas.join('\n');}
+const subtotalElegivel=()=>Math.round(produtos.filter(x=>!x.combo).reduce((s,x)=>s+x.preco,0)*100)/100;
+const arred=n=>Math.round((n+Number.EPSILON)*100)/100;
+function melhorDesconto(){
+ const base=subtotalElegivel(),s=subtotal();
+ const auto=base>70?arred(base*.10):0;
+ const percent=cupomAplicado?Number(cupomAplicado.desconto_percentual):0;
+ const primeira=cupomAplicado&&cupomAplicado.codigo==='PRIMEIRACOMPRA'&&cupomAplicado.primeira_compra;
+ const baseCupom=primeira?s:base;
+ const cupom=arred(baseCupom*percent/100);
+ return cupom>auto?{percent,tipo:'cupom',valor:cupom,base:baseCupom}:auto?{percent:10,tipo:'automatico',valor:auto,base}: {percent:0,tipo:'nenhum',valor:0,base:0};
+}
+function totalComDesconto(){return Math.max(0,arred(subtotal()-melhorDesconto().valor));}
+function mostrarValores(){if(!produtos.length)return;const s=subtotal(),d=melhorDesconto();const linhas=['Subtotal: '+dinheiro(s)];if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom aplicado: '+cupomAplicado.codigo:'Desconto automático para serviços individuais acima de R$ 70,00');if(d.base!==s)linhas.push('Base do desconto: '+dinheiro(d.base)+' (combos excluídos)');linhas.push('Desconto ('+d.percent.toLocaleString('pt-BR')+'%): -'+dinheiro(d.valor));}if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado: '+cupomAplicado.codigo+' (não acumulado; desconto automático mais vantajoso)');linhas.push('Valor final: '+dinheiro(totalComDesconto()));el('resumoValores').textContent=linhas.join('\n');}
 function mensagemCupom(texto,erro=false){const node=el('cupomMensagem');node.textContent=texto;node.className='coupon-message'+(texto?(erro?' error':' ok'):'');}
 function limparCupom(){cupomAplicado=null;mensagemCupom('');mostrarValores();}
 el('cupomCodigo').addEventListener('input',limparCupom);
@@ -77,11 +87,37 @@ el('aplicarCupom').addEventListener('click',async()=>{
  const hoje=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  if(!data||(data.validade&&data.validade<hoje)){mensagemCupom('Cupom inválido, inativo ou vencido.',true);return;}
  if(el('cupomCodigo').value.trim().toUpperCase()!==codigo)return;
- cupomAplicado=data;mostrarValores();mensagemCupom(Number(data.desconto_percentual)<= (subtotal()>70?10:0)?'Cupom válido. O desconto automático é igual ou mais vantajoso e não será acumulado.':data.primeira_compra?'Cupom de primeira compra aplicado! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto, sujeito à confirmação antes do pagamento.':'Cupom aplicado com sucesso! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto.');
+ if(subtotalElegivel()===0&&!(data.codigo==='PRIMEIRACOMPRA'&&data.primeira_compra)){mensagemCupom('Este cupom não se aplica aos combos.',true);return;}
+  cupomAplicado=data;mostrarValores();mensagemCupom(melhorDesconto().tipo!=='cupom'?'Cupom válido. O desconto automático é igual ou mais vantajoso e não será acumulado.':data.primeira_compra?'Cupom de primeira compra aplicado! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto, sujeito à confirmação antes do pagamento.':'Cupom aplicado com sucesso! Você ganhou '+Number(data.desconto_percentual).toLocaleString('pt-BR')+'% de desconto.');
  }catch(err){console.error('Erro ao verificar cupom',err);mensagemCupom('Não foi possível verificar o cupom. Tente novamente.',true)}finally{validandoCupom=false;el('aplicarCupom').disabled=false;}
 });
 const normalizeTipo=v=>{v=String(v||'').toLowerCase();if(v.includes('interativ')||v.includes('master')||v.includes('estendid'))return'interativo';if(v.includes('animad')||v.includes('gif')||v.includes('gold'))return'animado';if(v.includes('tradicion')||v.includes('png'))return'tradicional';return''};
 function normalizar(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function servico(x){
+ if(x.combo)return 'completo';
+ const n=normalizar(x.modelo+' '+x.tipo+' '+x.categoriaNome);
+ if(/filtro/.test(n))return 'filtro';
+ if(/plaquinha|placa de agradecimento/.test(n))return 'placa';
+ if(/save[ -]+the[ -]+date/.test(n))return 'save';
+ if(/lembrete/.test(n))return 'lembrete';
+ if(/retrospectiva/.test(n))return 'retro';
+ if(/mascot/.test(n))return 'mascote';
+ return 'completo';
+}
+function necessidades(lista){
+ const tipos=new Set(lista.map(servico));const tem=(...v)=>v.some(x=>tipos.has(x));
+ return {completo:tem('completo'),tema:tem('completo','filtro','placa','save','lembrete','mascote'),nome:tem('completo','filtro','placa','save','lembrete','retro'),data:tem('completo','filtro','save','lembrete'),hora:tem('completo','save','lembrete'),endereco:tem('completo','lembrete'),obs:tem('completo','save','lembrete','mascote'),save:tem('save'),lembrete:tem('lembrete'),retro:tem('retro'),mascote:tem('mascote')};
+}
+function campo(id,mostrar,obrigatorio=false){const x=el(id);x.closest('.field').classList.toggle('hide',!mostrar);x.disabled=!mostrar;x.required=mostrar&&obrigatorio;}
+function configurarServicos(){const n=necessidades(produtos), geral=modoEvento==='geral';
+ campo('temaDesejado',n.tema,true);
+ campo('nome',geral&&n.nome,true);campo('idade',geral&&n.nome);
+ campo('data',geral&&n.data,true);campo('hora',geral&&n.hora,true);campo('endereco',geral&&n.endereco,true);
+ el('data').closest('.two').classList.toggle('hide',!geral||!n.data&&!n.hora);
+ el('fotoCampo').classList.toggle('hide',!n.completo);el('fotoCampo').querySelectorAll('input').forEach(x=>x.disabled=!n.completo);
+ campo('frase',n.completo&&geral);campo('fraseSave',n.save);campo('fraseLembrete',n.lembrete);campo('observacoes',n.obs);
+ el('avisoRetro').classList.toggle('hide',!n.retro);el('avisoMascote').classList.toggle('hide',!n.mascote);
+}
 function identificarEvento(categoria,tema){const cat=normalizar(categoria),th=normalizar(tema);if(/casamento|noivos|noivas/.test(cat)||(!cat&&/casamento|noivos|noivas/.test(th)))return 'casamento';if(/15\s*anos|debutante/.test(cat)||(!cat&&/15\s*anos|debutante/.test(th)))return '15anos';return 'geral';}
 function radioValor(nome){return document.querySelector('input[name="'+nome+'"]:checked')?.value||'Não';}
 function ativarSecao(id,mostrar){const sec=el(id);sec.classList.toggle('hide',!mostrar);sec.querySelectorAll('input,textarea,select').forEach(x=>{x.disabled=!mostrar;if(x.dataset.obrigatorio==='1')x.required=mostrar;});}
@@ -118,21 +154,22 @@ async function carregarProduto(){
   if(carrinho){try{const saved=JSON.parse(localStorage.getItem('cabraldigital_carrinho_v1')||'[]');if(Array.isArray(saved))ids=[...new Set(saved.map(String))].slice(0,40)}catch(e){}}
   else if(p.get('id'))ids=[p.get('id')];
   if(!ids.length){el('statusProduto').innerHTML='Seu carrinho está vazio. <a href="./index.html">Voltar ao catálogo</a>.';return;}
-     const [ms,cs]=await Promise.all([db.from('modelos_catalogo').select('*').in('id',ids).eq('ativo',true),db.from('categorias_catalogo').select('id,nome')]);
+     const [ms,cs]=await Promise.all([db.from('modelos_catalogo').select('*').in('id',ids).eq('ativo',true),db.from('categorias_catalogo').select('id,nome,slug')]);
    if(ms.error||cs.error)throw ms.error||cs.error;
-   produtos=ids.map(id=>{const m=(ms.data||[]).find(x=>String(x.id)===id);if(!m)return null;const c=(cs.data||[]).find(c=>String(c.id)===String(m.categoria_id));if(!c)return null;return{id:m.id,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),categoria:normalizeTipo((m.tipo||'')+' '+(m.nome||'')),categoriaNome:c.nome,evento:identificarEvento(c.nome,''),informacoes_importantes:m.informacoes_importantes||'',politicas_loja:m.politicas_loja||''}}).filter(Boolean);
+   produtos=ids.map(id=>{const m=(ms.data||[]).find(x=>String(x.id)===id);if(!m)return null;const c=(cs.data||[]).find(c=>String(c.id)===String(m.categoria_id));if(!c)return null;return{id:m.id,modelo:m.nome,tipo:m.tipo,preco:Number(m.preco||0),combo:c.slug==='combos',categoria:c.slug==='combos'?'interativo':normalizeTipo((m.tipo||'')+' '+(m.nome||'')),categoriaNome:c.nome,evento:identificarEvento(c.nome,''),informacoes_importantes:m.informacoes_importantes||'',politicas_loja:m.politicas_loja||''}}).filter(Boolean);
 if(produtos.length!==ids.length)throw Error('Algum produto não está mais disponível. Revise seu carrinho.');
   produto=produtos[0];
   const multi=produtos.length>1;
-  el('produtoTitulo').textContent=multi?'Produtos do carrinho':'Convite escolhido';
+  el('produtoTitulo').textContent=multi?'Produtos do carrinho':'Serviço escolhido';
   el('multiplosAviso').classList.toggle('hide',!multi);
-   const eventos=[...new Set(produtos.map(x=>x.evento).filter(x=>x!=='geral'))];
+   const eventos=[...new Set(produtos.filter(x=>servico(x)==='completo').map(x=>x.evento).filter(x=>x!=='geral'))];
    configurarEvento(eventos.length===1?eventos[0]:'geral');
    if(eventos.length>1)el('multiplosAviso').textContent='Seu carrinho reúne convites de casamento e de 15 anos. Informe os dados específicos de cada evento nas observações adicionais.';
   el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.modelo+'\nTipo: '+x.tipo+'\nValor: '+dinheiro(x.preco)).join('\n\n');
   mostrarValores();
   mostrarPoliticas();
-  atualizar(produtos.some(x=>x.categoria==='interativo')?'interativo':'');
+  atualizar(produtos.some(x=>servico(x)==='completo'&&x.categoria==='interativo')?'interativo':'');
+  configurarServicos();
   el('statusProduto').hidden=true;el('pedidoForm').hidden=false;
  }catch(err){console.error('Erro ao carregar pedido',err);el('statusProduto').innerHTML='Não foi possível validar os produtos. <a href="./index.html">Voltar ao catálogo</a>.';}
 }
@@ -143,16 +180,17 @@ el('pedidoForm').addEventListener('submit',e=>{
 e.preventDefault();if(!e.currentTarget.reportValidity())return;
 if(!produtos.length||validandoCupom)return;
 if(el('cupomCodigo').value.trim()&&!cupomAplicado){mensagemCupom('Clique em Aplicar cupom ou apague o código antes de finalizar.',true);el('cupomCodigo').focus();return;}
-const tipo=produtos.some(x=>x.categoria==='interativo')?'interativo':'';
+const tipo=produtos.some(x=>servico(x)==='completo'&&x.categoria==='interativo')?'interativo':'';
 const d=melhorDesconto(),s=subtotal();
 const linhas=['*NOVO PEDIDO — CABRAL DIGITAL*','','*PRODUTOS*'];
 produtos.forEach((x,i)=>linhas.push((i+1)+'. '+x.modelo,'Tipo: '+x.tipo,'Valor: '+dinheiro(x.preco),''));
 linhas.push('Subtotal: '+dinheiro(s));
-if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom: '+cupomAplicado.codigo:'Desconto automático acima de R$ 70,00','Desconto: '+d.percent.toLocaleString('pt-BR')+'% (-'+dinheiro(s-totalComDesconto())+')');}
+if(d.percent){linhas.push(d.tipo==='cupom'?'Cupom: '+cupomAplicado.codigo:'Desconto automático em serviços individuais acima de R$ 70,00',...(d.base!==s?['Base do desconto: '+dinheiro(d.base)+' (combos excluídos)']:[]),'Desconto: '+d.percent.toLocaleString('pt-BR')+'% (-'+dinheiro(d.valor)+')');}
 if(cupomAplicado&&d.tipo!=='cupom')linhas.push('Cupom informado (não acumulado): '+cupomAplicado.codigo);
 linhas.push('Valor final: '+dinheiro(totalComDesconto()));
 if(d.tipo==='cupom'&&cupomAplicado.primeira_compra)linhas.push('*Desconto de primeira compra sujeito à confirmação pela Cabral Digital antes do pagamento.*');
-linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel'),'Tema desejado: '+get('temaDesejado'));
+linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel'));
+if(!el('temaDesejado').disabled)linhas.push('Tema desejado: '+get('temaDesejado'));
  if(modoEvento==='casamento'){
   linhas.push('Evento: Casamento','Noiva: '+get('noiva'),'Noivo: '+get('noivo'),'Paleta de cores: '+get('paleta'),'Data: '+dataBR(get('dataCasamento')),'Horário da cerimônia: '+get('horaCasamento'),'Cerimônia: '+get('cerimonia'),'Cerimônia e recepção no mesmo local: '+radioValor('mesmoLocal'));
   if(radioValor('mesmoLocal')==='Não'){linhas.push('Recepção: '+get('recepcao'));if(get('horaRecepcao'))linhas.push('Horário da recepção: '+get('horaRecepcao'));}
@@ -164,11 +202,17 @@ linhas.push('','*DADOS PARA PERSONALIZAÇÃO*','Responsável: '+get('responsavel
   if(get('frase15'))linhas.push('Frase especial: '+get('frase15'));
   linhas.push('Incluir nomes dos pais: '+radioValor('pais15'));
   if(radioValor('pais15')==='Sim')linhas.push('Pais: '+get('nomesPais15'));
- }else linhas.push('Nome: '+get('nome'),...(get('idade')?['Idade: '+get('idade')]:[]),'Data: '+dataBR(get('data')),'Horário: '+get('hora'),'Endereço: '+get('endereco'));
+ }else {
+ for(const [id,label] of [['nome','Nome'],['idade','Idade'],['data','Data'],['hora','Horário'],['endereco','Endereço']])if(!el(id).disabled&&get(id))linhas.push(label+': '+(id==='data'?dataBR(get(id)):get(id)));
+ }
 if(tipo==='interativo'){if(get('confirmacao'))linhas.push('WhatsApp para confirmação: '+get('confirmacao'));if(get('presentes'))linhas.push('Sugestões de presentes: '+get('presentes'))}
-const foto=document.querySelector('input[name="foto"]:checked');linhas.push('Terá foto: '+(foto?foto.value:'Não'));
-if(modoEvento==='geral'&&get('frase'))linhas.push('Frase personalizada: '+get('frase'));
-if(get('observacoes'))linhas.push('Observações: '+get('observacoes'));
+const foto=document.querySelector('input[name="foto"]:checked');if(necessidades(produtos).completo)linhas.push('Terá foto: '+(foto?foto.value:'Não'));
+if(!el('frase').disabled&&get('frase'))linhas.push('Frase personalizada: '+get('frase'));
+if(!el('fraseSave').disabled&&get('fraseSave'))linhas.push('Frase do Save the Date: '+get('fraseSave'));
+if(!el('fraseLembrete').disabled&&get('fraseLembrete'))linhas.push('Frase do lembrete: '+get('fraseLembrete'));
+if(necessidades(produtos).retro)linhas.push('Envio das fotos da retrospectiva: a combinar pelo WhatsApp.');
+if(necessidades(produtos).mascote)linhas.push('Envio das imagens do mascote: a combinar pelo WhatsApp.');
+if(!el('observacoes').disabled&&get('observacoes'))linhas.push('Observações: '+get('observacoes'));
 linhas.push('','*CONFIRMAÇÃO*','Li e aceito as políticas da loja e as informações importantes apresentadas na descrição do produto.','','Gostaria de prosseguir com minha encomenda.');
 const url='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(linhas.join('\n'));
 window.location.href=url;
