@@ -12,7 +12,7 @@
 <div class="intro"><h1>Formulário de pedido</h1><p>Preencha com atenção os dados para personalizar sua arte.</p></div>
 <div id="statusProduto" class="card" role="status">Verificando o convite escolhido...</div><form id="pedidoForm" hidden>
 <section class="card" id="produtoCard"><h2 id="produtoTitulo">Convite escolhido</h2><div class="summary" id="resumo">Pedido iniciado pelo formulário.</div><p class="hint">Os dados são carregados diretamente do catálogo.</p></section>
-<section class="card"><h2>Informações para personalização</h2><p id="multiplosAviso" class="hint hide" style="margin-bottom:16px">Preencha os dados comuns do evento. Se os produtos precisarem de informações diferentes, detalhe cada um no campo Observações adicionais.</p>
+<section class="card hide" id="retroPacotes"><h2>Escolha o pacote da retrospectiva</h2><div id="retroOpcoes"></div></section><section class="card"><h2>Informações para personalização</h2><p id="multiplosAviso" class="hint hide" style="margin-bottom:16px">Preencha os dados comuns do evento. Se os produtos precisarem de informações diferentes, detalhe cada um no campo Observações adicionais.</p>
 <div class="field"><label for="responsavel">Nome do responsável <span class="req">*</span></label><input id="responsavel" name="responsavel" required autocomplete="name" maxlength="120"></div>
 
 <div class="field"><label for="temaDesejado">Tema desejado para personalização <span class="req">*</span></label><input id="temaDesejado" name="temaDesejado" required maxlength="160" placeholder="Ex.: Bailarina, Jardim Encantado, floral minimalista..."><p class="hint">Informe o tema ou estilo que deseja. Não é necessário escolher um modelo.</p></div>
@@ -46,7 +46,7 @@
 <div class="field conditional" data-types="interativo"><label for="presentes">Sugestões de presentes</label><textarea id="presentes" name="presentes" placeholder="Se não desejar incluir, deixe em branco"></textarea></div>
 <div class="field" id="fotoCampo"><label>O convite terá foto?</label><div class="radio"><label><input type="radio" name="foto" value="Sim"> Sim</label><label><input type="radio" name="foto" value="Não" checked> Não</label></div><p class="hint">Se sim, envie a foto separadamente pelo WhatsApp após abrir a conversa.</p></div>
 <div class="field" id="fraseGeralCampo"><label for="frase">Deseja personalizar a frase do convite?</label><textarea id="frase" name="frase" placeholder="Se desejar, escreva a frase aqui. Caso contrário, deixe em branco."></textarea></div>
-<div class="field hide" id="fraseSaveCampo"><label for="fraseSave">Deseja personalizar a frase do Save the Date?</label><textarea id="fraseSave"></textarea></div><div class="field hide" id="fraseLembreteCampo"><label for="fraseLembrete">Deseja personalizar a frase do lembrete?</label><textarea id="fraseLembrete"></textarea></div><p class="hint hide" id="avisoRetro">O envio das fotos para a produção da retrospectiva será combinado diretamente pelo WhatsApp.</p><p class="hint hide" id="avisoMascote">O envio das imagens de referência para a criação do mascotinho será combinado diretamente pelo WhatsApp.</p><div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
+<div class="field hide" id="fraseSaveCampo"><label for="fraseSave">Deseja personalizar a frase do Save the Date?</label><textarea id="fraseSave"></textarea></div><div class="field hide" id="fraseLembreteCampo"><label for="fraseLembrete">Deseja personalizar a frase do lembrete?</label><textarea id="fraseLembrete"></textarea></div><div id="retroDados" class="hide"></div><p class="hint hide" id="avisoRetro">O envio das fotos e vídeos para a produção da retrospectiva será combinado diretamente pelo WhatsApp.</p><p class="hint hide" id="avisoMascote">O envio das imagens de referência para a criação do mascotinho será combinado diretamente pelo WhatsApp.</p><div class="field"><label for="observacoes">Observações adicionais</label><textarea id="observacoes" name="observacoes" placeholder="Informações extras para a criação da arte"></textarea></div>
 </section>
 <section class="card"><h2>Cupom de desconto</h2><div class="field"><label for="cupomCodigo">Código do cupom (opcional)</label><div class="coupon-row"><input id="cupomCodigo" autocomplete="off" maxlength="60" placeholder="Digite seu cupom"><button id="aplicarCupom" type="button">Aplicar cupom</button></div><p id="cupomMensagem" class="coupon-message" role="status" aria-live="polite"></p><p class="hint">Combos aceitam somente o cupom PRIMEIRACOMPRA. O desconto automático de 10% vale para serviços individuais acima de R$ 70,00. Descontos não acumulam. A primeira compra está sujeita à confirmação antes do pagamento.</p></div><div class="summary" id="resumoValores" aria-live="polite">O valor será exibido após selecionar o convite.</div></section><section class="card" id="politicasPedido"><h2>Informações importantes e políticas da loja</h2><p class="hint" style="margin-bottom:12px">Leia as condições de cada serviço antes de finalizar seu pedido.</p><div id="politicasConteudo"></div></section><section class="card"><div class="accept"><input id="aceite" type="checkbox" required><label for="aceite">Li e aceito as <a href="#politicasPedido">políticas da loja e informações importantes</a> dos serviços selecionados. <span class="req">*</span></label></div><button class="send" type="submit">Finalizar pedido pelo WhatsApp</button><p class="hint" style="text-align:center">O WhatsApp abrirá com a mensagem pronta. Você precisará tocar em enviar para concluir o contato.</p></section>
 </form><p class="foot">Cabral Digital · Artes Digitais</p></main>
@@ -96,6 +96,7 @@ function normalizar(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u
 function servico(x){
  if(x.combo)return 'completo';
  const n=normalizar(x.modelo+' '+x.tipo+' '+x.categoriaNome);
+ if(/retrospectiva/.test(n))return 'retro';
  if(/filtro/.test(n))return 'filtro';
  if(/plaquinha|placa de agradecimento/.test(n))return 'placa';
  if(/save[ -]+the[ -]+date/.test(n))return 'save';
@@ -106,7 +107,7 @@ function servico(x){
 }
 function necessidades(lista){
  const tipos=new Set(lista.map(servico));const tem=(...v)=>v.some(x=>tipos.has(x));
- return {completo:tem('completo'),tema:tem('completo','filtro','placa','save','lembrete','mascote'),nome:tem('completo','filtro','placa','save','lembrete','retro'),data:tem('completo','filtro','save','lembrete'),hora:tem('completo','save','lembrete'),endereco:tem('completo','lembrete'),obs:tem('completo','save','lembrete','mascote'),save:tem('save'),lembrete:tem('lembrete'),retro:tem('retro'),mascote:tem('mascote')};
+ return {completo:tem('completo'),tema:tem('completo','filtro','placa','save','lembrete','mascote','retro'),nome:tem('completo','filtro','placa','save','lembrete','retro'),data:tem('completo','filtro','save','lembrete'),hora:tem('completo','save','lembrete'),endereco:tem('completo','lembrete'),obs:tem('completo','save','lembrete','mascote','retro'),save:tem('save'),lembrete:tem('lembrete'),retro:tem('retro'),mascote:tem('mascote')};
 }
 function campo(id,mostrar,obrigatorio=false){const x=el(id);x.closest('.field').classList.toggle('hide',!mostrar);x.disabled=!mostrar;x.required=mostrar&&obrigatorio;}
 function configurarServicos(){const n=necessidades(produtos), geral=modoEvento==='geral';
@@ -132,6 +133,28 @@ function atualizarPais(){const cas=modoEvento==='casamento'&&radioValor('paisCas
 document.querySelectorAll('input[name="mesmoLocal"]').forEach(x=>x.addEventListener('change',atualizarLocalRecepcao));
 document.querySelectorAll('input[name="paisCasamento"],input[name="pais15"]').forEach(x=>x.addEventListener('change',atualizarPais));
 function atualizar(tipo){document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
+const pacotesRetro=[{f:50,m:2,v:1},{f:80,m:2,v:1},{f:100,m:3,v:2},{f:120,m:3,v:3},{f:150,m:4,v:5}];
+function detalhesRetro(p){return p.f+' fotos / '+p.m+' músicas / '+p.v+(p.v===1?' vídeo caseiro':' vídeos caseiros')+(p.f>50?' / Animações':'');}
+function mostrarResumo(){const multi=produtos.length>1;el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.modelo+'\nTipo: '+x.tipo+(x.retroPacote?'\nPacote: '+detalhesRetro(x.retroPacote):'')+'\nValor: '+dinheiro(x.preco)).join('\n\n');}
+function configurarRetro(){
+ const itens=produtos.filter(x=>servico(x)==='retro');
+ el('retroPacotes').classList.toggle('hide',!itens.length);el('retroDados').classList.toggle('hide',!itens.length);
+ itens.forEach((x,i)=>{
+ const bloco=document.createElement('div');bloco.className='field';
+ const label=document.createElement('label');label.htmlFor='retroPacote'+i;label.textContent=x.modelo+' — quantidade de fotos';
+ const sel=document.createElement('select');sel.id=label.htmlFor;sel.required=true;
+ pacotesRetro.forEach((p,j)=>{const o=document.createElement('option');o.value=j;o.textContent='Até '+p.f+' fotos — '+dinheiro(p.f);sel.append(o);});
+ const hint=document.createElement('p');hint.className='hint';bloco.append(label,sel,hint);el('retroOpcoes').append(bloco);
+ const dados=document.createElement('div');dados.className='field';
+ const musicas=document.createElement('div');
+ dados.append(musicas);const ded=document.createElement('textarea');ded.id='retroDed'+i;ded.placeholder='Mensagem para o final do vídeo';ded.maxLength=1500;
+ const dl=document.createElement('label');dl.htmlFor=ded.id;dl.textContent='Dedicatória final';dados.append(dl,ded);el('retroDados').append(dados);
+ x.retroDed=ded;x.retroMusicas=musicas;
+ if(modoEvento!=='geral'){const nome=document.createElement('input');nome.placeholder='Nome do homenageado da retrospectiva';nome.required=true;const idade=document.createElement('input');idade.placeholder='Idade (se aplicável)';dados.prepend(nome,idade);x.retroNome=nome;x.retroIdade=idade;}
+ function atualizarPacote(){const anteriores=[...musicas.querySelectorAll('input')].map(a=>a.value);const p=pacotesRetro[Number(sel.value)];x.retroPacote=p;x.preco=p.f;hint.textContent=detalhesRetro(p);musicas.replaceChildren();for(let j=0;j<p.m;j++){const l=document.createElement('label');l.textContent='Música '+(j+1);const a=document.createElement('input');a.id='retroMusica'+i+'_'+j;l.htmlFor=a.id;a.placeholder='Nome da música e artista';a.maxLength=200;a.value=anteriores[j]||'';const f=document.createElement('div');f.className='field';f.append(l,a);musicas.append(f);}mostrarResumo();mostrarValores();}
+ sel.addEventListener('change',atualizarPacote);atualizarPacote();
+ });
+}
 function mostrarPoliticas(){
  const root=el('politicasConteudo');root.replaceChildren();
  produtos.forEach(x=>{
@@ -170,6 +193,7 @@ if(produtos.length!==ids.length)throw Error('Algum produto não está mais dispo
   mostrarPoliticas();
   atualizar(produtos.some(x=>servico(x)==='completo'&&x.categoria==='interativo')?'interativo':'');
   configurarServicos();
+   configurarRetro();
   el('statusProduto').hidden=true;el('pedidoForm').hidden=false;
  }catch(err){console.error('Erro ao carregar pedido',err);el('statusProduto').innerHTML='Não foi possível validar os produtos. <a href="./index.html">Voltar ao catálogo</a>.';}
 }
@@ -210,7 +234,7 @@ const foto=document.querySelector('input[name="foto"]:checked');if(necessidades(
 if(!el('frase').disabled&&get('frase'))linhas.push('Frase personalizada: '+get('frase'));
 if(!el('fraseSave').disabled&&get('fraseSave'))linhas.push('Frase do Save the Date: '+get('fraseSave'));
 if(!el('fraseLembrete').disabled&&get('fraseLembrete'))linhas.push('Frase do lembrete: '+get('fraseLembrete'));
-if(necessidades(produtos).retro)linhas.push('Envio das fotos da retrospectiva: a combinar pelo WhatsApp.');
+produtos.filter(x=>x.retroPacote).forEach(x=>{linhas.push('','*RETROSPECTIVA — '+x.modelo+'*','Pacote: '+detalhesRetro(x.retroPacote),'Valor do pacote: '+dinheiro(x.preco));if(x.retroNome)linhas.push('Nome: '+x.retroNome.value,'Idade: '+x.retroIdade.value);[...x.retroMusicas.querySelectorAll('input')].forEach((a,i)=>linhas.push('Música '+(i+1)+': '+(a.value.trim()||'A definir')));linhas.push('Dedicatória final: '+(x.retroDed.value.trim()||'A definir'),'Envio das fotos e vídeos: a combinar pelo WhatsApp.');});
 if(necessidades(produtos).mascote)linhas.push('Envio das imagens do mascote: a combinar pelo WhatsApp.');
 if(!el('observacoes').disabled&&get('observacoes'))linhas.push('Observações: '+get('observacoes'));
 linhas.push('','*CONFIRMAÇÃO*','Li e aceito as políticas da loja e as informações importantes apresentadas na descrição do produto.','','Gostaria de prosseguir com minha encomenda.');
