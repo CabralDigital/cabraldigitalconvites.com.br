@@ -133,7 +133,7 @@ function atualizarPais(){const cas=modoEvento==='casamento'&&radioValor('paisCas
 document.querySelectorAll('input[name="mesmoLocal"]').forEach(x=>x.addEventListener('change',atualizarLocalRecepcao));
 document.querySelectorAll('input[name="paisCasamento"],input[name="pais15"]').forEach(x=>x.addEventListener('change',atualizarPais));
 function atualizar(tipo){document.querySelectorAll('.conditional').forEach(node=>{const show=node.dataset.types.split(',').includes(tipo);node.classList.toggle('hide',!show);node.querySelectorAll('input,textarea,select').forEach(x=>x.disabled=!show)});}
-const pacotesRetro=[{f:50,m:2,v:1},{f:80,m:2,v:1},{f:100,m:3,v:2},{f:120,m:3,v:3},{f:150,m:4,v:5}];
+const pacotesRetro=[{f:50,m:2,v:1,preco:65},{f:80,m:2,v:1,preco:104},{f:100,m:3,v:2,preco:130},{f:120,m:3,v:3,preco:156},{f:150,m:4,v:5,preco:195}];
 function detalhesRetro(p){return p.f+' fotos / '+p.m+' músicas / '+p.v+(p.v===1?' vídeo caseiro':' vídeos caseiros')+(p.f>50?' / Animações':'');}
 function mostrarResumo(){const multi=produtos.length>1;el('resumo').textContent=produtos.map((x,i)=>(multi?(i+1)+'. ':'')+x.modelo+'\nTipo: '+x.tipo+(x.retroPacote?'\nPacote: '+detalhesRetro(x.retroPacote):'')+'\nValor: '+dinheiro(x.preco)).join('\n\n');}
 function configurarRetro(){
@@ -143,7 +143,7 @@ function configurarRetro(){
  const bloco=document.createElement('div');bloco.className='field';
  const label=document.createElement('label');label.htmlFor='retroPacote'+i;label.textContent=x.modelo+' — quantidade de fotos';
  const sel=document.createElement('select');sel.id=label.htmlFor;sel.required=true;
- pacotesRetro.forEach((p,j)=>{const o=document.createElement('option');o.value=j;o.textContent='Até '+p.f+' fotos — '+dinheiro(p.f);sel.append(o);});
+ pacotesRetro.forEach((p,j)=>{const o=document.createElement('option');o.value=j;o.textContent='Até '+p.f+' fotos — '+dinheiro(p.preco);sel.append(o);});
  const hint=document.createElement('p');hint.className='hint';bloco.append(label,sel,hint);el('retroOpcoes').append(bloco);
  const dados=document.createElement('div');dados.className='field';
  const musicas=document.createElement('div');
@@ -151,7 +151,7 @@ function configurarRetro(){
  const dl=document.createElement('label');dl.htmlFor=ded.id;dl.textContent='Dedicatória final';dados.append(dl,ded);el('retroDados').append(dados);
  x.retroDed=ded;x.retroMusicas=musicas;
  if(modoEvento!=='geral'){const nome=document.createElement('input');nome.placeholder='Nome do homenageado da retrospectiva';nome.required=true;const idade=document.createElement('input');idade.placeholder='Idade (se aplicável)';dados.prepend(nome,idade);x.retroNome=nome;x.retroIdade=idade;}
- function atualizarPacote(){const anteriores=[...musicas.querySelectorAll('input')].map(a=>a.value);const p=pacotesRetro[Number(sel.value)];x.retroPacote=p;x.preco=p.f;hint.textContent=detalhesRetro(p);musicas.replaceChildren();for(let j=0;j<p.m;j++){const l=document.createElement('label');l.textContent='Música '+(j+1);const a=document.createElement('input');a.id='retroMusica'+i+'_'+j;l.htmlFor=a.id;a.placeholder='Nome da música e artista';a.maxLength=200;a.value=anteriores[j]||'';const f=document.createElement('div');f.className='field';f.append(l,a);musicas.append(f);}mostrarResumo();mostrarValores();}
+ function atualizarPacote(){const anteriores=[...musicas.querySelectorAll('input')].map(a=>a.value);const p=pacotesRetro[Number(sel.value)];x.retroPacote=p;x.preco=p.preco;hint.textContent=detalhesRetro(p);musicas.replaceChildren();for(let j=0;j<p.m;j++){const l=document.createElement('label');l.textContent='Música '+(j+1);const a=document.createElement('input');a.id='retroMusica'+i+'_'+j;l.htmlFor=a.id;a.placeholder='Nome da música e artista';a.maxLength=200;a.value=anteriores[j]||'';const f=document.createElement('div');f.className='field';f.append(l,a);musicas.append(f);}mostrarResumo();mostrarValores();}
  sel.addEventListener('change',atualizarPacote);atualizarPacote();
  });
 }
